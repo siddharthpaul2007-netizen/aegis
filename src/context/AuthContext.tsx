@@ -1,93 +1,118 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { DatabaseService, DbUser } from '../services/db';
 
-export interface UserProfile {
-  id: string;
-  userId: string;
+export interface DemoPersona {
+  type: 'deepak' | 'priya' | 'vikram';
   name: string;
+  role: string;
   accountNumber: string;
   tier: string;
-  role: string;
-  clearanceLevel: string;
   email: string;
-  phone: string;
+  clearanceLevel: string;
   balance: number;
-  lastLogin: string;
-  twoFactorEnabled: boolean;
-}
-
-export interface DemoAccount {
-  user: UserProfile;
-  passwordHint: string;
-  description: string;
   badgeTone: 'emerald' | 'cyan' | 'amber';
+  user: DbUser;
 }
 
-export const DEMO_ACCOUNTS: Record<string, DemoAccount> = {
-  'deepak.sharma': {
+export const DEMO_PERSONAS: Record<'deepak' | 'priya' | 'vikram', DemoPersona> = {
+  deepak: {
+    type: 'deepak',
+    name: 'Deepak Sharma',
+    role: 'Executive Retail Client',
+    accountNumber: 'ACC #4912 · ELITE',
+    tier: 'ELITE',
+    email: 'deepak.sharma@ascend.bank',
+    clearanceLevel: 'Level 3 Sovereign Clearance',
+    balance: 2845000,
+    badgeTone: 'emerald',
     user: {
-      id: 'usr-01',
+      id: 'usr-demo-vulnerable',
       userId: 'deepak.sharma',
+      email: 'deepak.sharma@ascend.bank',
       name: 'Deepak Sharma',
+      passwordHash: '',
+      salt: '',
       accountNumber: 'ACC #4912 · ELITE',
       tier: 'ELITE',
-      role: 'Executive Client',
+      role: 'Executive Retail Client',
       clearanceLevel: 'Level 3 Sovereign Clearance',
-      email: 'deepak.sharma@ascend.bank',
       phone: '+91 98450 12948',
       balance: 2845000,
+      isDemoAccount: true,
+      createdAt: new Date().toISOString(),
       lastLogin: 'Today, 14:22 IST (Terminal 01)',
       twoFactorEnabled: true,
     },
-    passwordHint: 'aegis2026',
-    description: 'Executive retail banking client with high-value RTGS/UPI privileges.',
-    badgeTone: 'emerald',
   },
-  'priya.treasury': {
+  priya: {
+    type: 'priya',
+    name: 'Priya Nair',
+    role: 'Corporate Treasury Officer',
+    accountNumber: 'ACC #8821 · TREASURY',
+    tier: 'CORPORATE',
+    email: 'priya.nair@chromastudios.com',
+    clearanceLevel: 'Multi-Sig Corporate Approver',
+    balance: 14500000,
+    badgeTone: 'cyan',
     user: {
-      id: 'usr-02',
+      id: 'usr-demo-stressed',
       userId: 'priya.treasury',
+      email: 'priya.nair@chromastudios.com',
       name: 'Priya Nair',
+      passwordHash: '',
+      salt: '',
       accountNumber: 'ACC #8821 · TREASURY',
       tier: 'CORPORATE',
-      role: 'Treasury Officer',
+      role: 'Corporate Treasury Officer',
       clearanceLevel: 'Multi-Sig Corporate Approver',
-      email: 'priya.nair@chromastudios.com',
       phone: '+91 98200 48192',
       balance: 14500000,
+      isDemoAccount: true,
+      createdAt: new Date().toISOString(),
       lastLogin: 'Today, 11:05 IST (Corporate Portal)',
       twoFactorEnabled: true,
     },
-    passwordHint: 'aegis2026',
-    description: 'Commercial corporate account manager managing vendor settlements.',
-    badgeTone: 'cyan',
   },
-  'vikram.admin': {
+  vikram: {
+    type: 'vikram',
+    name: 'Vikram Malhotra',
+    role: 'Chief Risk & Compliance Officer',
+    accountNumber: 'ACC #1004 · COMPLIANCE',
+    tier: 'RISK OFFICER',
+    email: 'vikram.malhotra@sentinel.ai',
+    clearanceLevel: 'Full Fraud Forensic Override',
+    balance: 5210000,
+    badgeTone: 'amber',
     user: {
-      id: 'usr-03',
+      id: 'usr-demo-healthy',
       userId: 'vikram.admin',
+      email: 'vikram.malhotra@sentinel.ai',
       name: 'Vikram Malhotra',
+      passwordHash: '',
+      salt: '',
       accountNumber: 'ACC #1004 · COMPLIANCE',
       tier: 'RISK OFFICER',
-      role: 'Chief Risk Officer',
+      role: 'Chief Risk & Compliance Officer',
       clearanceLevel: 'Full Fraud Forensic Override',
-      email: 'vikram.malhotra@sentinel.ai',
       phone: '+91 99100 37190',
       balance: 5210000,
+      isDemoAccount: true,
+      createdAt: new Date().toISOString(),
       lastLogin: 'Today, 09:30 IST (Risk Station)',
       twoFactorEnabled: true,
     },
-    passwordHint: 'aegis2026',
-    description: 'Fraud & AML forensic investigator with live intercept telemetry clearance.',
-    badgeTone: 'amber',
   },
 };
 
 interface AuthContextType {
-  user: UserProfile | null;
+  user: DbUser | null;
   isAuthenticated: boolean;
-  login: (userId: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  isVerifying: boolean;
+  verificationStep: 'idle' | 'identifying' | 'initializing';
+  signIn: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (data: { name: string; email: string; password: string; role?: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  switchDemoAccount: (userId: string) => void;
+  switchDemoPersona: (personaType: 'deepak' | 'priya' | 'vikram') => Promise<void>;
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -99,54 +124,138 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize with Deepak Sharma for instant seamless demonstration
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('aegis_auth_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return DEMO_ACCOUNTS['deepak.sharma'].user;
-      }
-    }
-    return DEMO_ACCOUNTS['deepak.sharma'].user;
-  });
+  const [user, setUser] = useState<DbUser | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Verification Animation States
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationStep, setVerificationStep] = useState<'idle' | 'identifying' | 'initializing'>('idle');
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
+  // Check persistent session from database on load
+  useEffect(() => {
+    const initSession = async () => {
+      try {
+        const savedUserId = localStorage.getItem('aegis_session_userId');
+        if (savedUserId) {
+          const found = await DatabaseService.findUser(savedUserId);
+          if (found) {
+            setUser(found);
+          }
+        }
+      } catch (err) {
+        console.error('Error reading persistent session:', err);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    initSession();
+  }, []);
+
+  // Save/remove session identifier
   useEffect(() => {
     if (user) {
-      localStorage.setItem('aegis_auth_user', JSON.stringify(user));
+      localStorage.setItem('aegis_session_userId', user.id);
     } else {
-      localStorage.removeItem('aegis_auth_user');
+      localStorage.removeItem('aegis_session_userId');
     }
   }, [user]);
 
-  const login = async (userId: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    const normalizedId = userId.trim().toLowerCase();
-    const demo = DEMO_ACCOUNTS[normalizedId];
+  /**
+   * Fast, elegant cyber verification sequence (850ms total)
+   */
+  const triggerVerificationSequence = async (targetUser: DbUser) => {
+    setIsVerifying(true);
+    setVerificationStep('identifying');
 
-    // Artificial cryptographic authentication delay (400ms) for high-end feel
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((r) => setTimeout(r, 450));
+    setVerificationStep('initializing');
 
-    if (!demo) {
-      return {
-        success: false,
-        error: `User ID "${userId}" not found. Please use one of the demo accounts below or check spelling.`,
-      };
-    }
-
-    if (password !== demo.passwordHint && password !== 'aegis2026' && password !== 'password') {
-      return {
-        success: false,
-        error: 'Invalid password. (Hint: use "aegis2026" or click a demo account below)',
-      };
-    }
-
-    setUser(demo.user);
+    await new Promise((r) => setTimeout(r, 400));
+    setUser(targetUser);
+    setIsVerifying(false);
+    setVerificationStep('idle');
     setIsAuthModalOpen(false);
-    return { success: true };
+    setIsProfileDrawerOpen(false);
+
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /**
+   * Real sign-in against salted PBKDF2 cryptographic hash
+   */
+  const signIn = async (identifier: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    if (!identifier.trim() || !password.trim()) {
+      return { success: false, error: 'Please enter both your email/user ID and password.' };
+    }
+
+    try {
+      const res = await DatabaseService.verifyCredentials(identifier, password);
+      if (!res.user) {
+        return { success: false, error: res.error || 'Authentication failed. Please check credentials.' };
+      }
+
+      await DatabaseService.createSession(res.user.id);
+      await triggerVerificationSequence(res.user);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: 'Database handshake error. Please try again.' };
+    }
+  };
+
+  /**
+   * Real user signup with input validation & cryptographic password hashing
+   */
+  const signUp = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    role?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    // Validation
+    if (!data.name.trim()) {
+      return { success: false, error: 'Please enter your full name.' };
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email.trim())) {
+      return { success: false, error: 'Please provide a valid corporate or personal email address.' };
+    }
+    if (data.password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters in length.' };
+    }
+
+    try {
+      const res = await DatabaseService.createUser({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role || 'Executive Sovereign Client',
+      });
+
+      if (!res.user) {
+        return { success: false, error: res.error || 'Failed to create user account.' };
+      }
+
+      await DatabaseService.createSession(res.user.id);
+      await triggerVerificationSequence(res.user);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: 'Database creation error. Please try again.' };
+    }
+  };
+
+  /**
+   * Switch between the 3 Demo Accounts
+   */
+  const switchDemoPersona = async (personaType: 'deepak' | 'priya' | 'vikram') => {
+    const persona = DEMO_PERSONAS[personaType];
+    if (persona) {
+      const dbUser = await DatabaseService.findUser(persona.user.userId);
+      await triggerVerificationSequence(dbUser || persona.user);
+    }
   };
 
   const logout = () => {
@@ -154,23 +263,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsProfileDrawerOpen(false);
   };
 
-  const switchDemoAccount = (demoUserId: string) => {
-    const demo = DEMO_ACCOUNTS[demoUserId];
-    if (demo) {
-      setUser(demo.user);
-      setIsAuthModalOpen(false);
-      setIsProfileDrawerOpen(false);
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
-        login,
+        isVerifying,
+        verificationStep,
+        signIn,
+        signUp,
         logout,
-        switchDemoAccount,
+        switchDemoPersona,
         isAuthModalOpen,
         openAuthModal: () => setIsAuthModalOpen(true),
         closeAuthModal: () => setIsAuthModalOpen(false),

@@ -1,27 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useIntelligence } from '../../context/IntelligenceContext';
+import { useAuth, DEMO_PERSONAS } from '../../context/AuthContext';
 import {
   ArrowUpRight,
   Play,
-  Zap,
   ChevronDown,
   ArrowUp,
   Shield,
-  TrendingUp,
-  Cpu
+  Sparkles,
+  Lock,
+  User,
+  Key,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  AlertCircle,
+  CheckCircle2,
+  Mail,
+  Building
 } from 'lucide-react';
 import { ScenarioId } from '../../types';
 
-interface CardTilt {
-  x: number;
-  y: number;
-  px: number;
-  py: number;
-  hovered: boolean;
-}
-
 export const CinematicHero: React.FC = () => {
   const { currentScenarioId, switchScenario, setActiveTab } = useIntelligence();
+  const { signIn, signUp, switchDemoPersona, isAuthenticated } = useAuth();
+  
   const trackRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -31,14 +34,23 @@ export const CinematicHero: React.FC = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Individual Card Tilt for Platform Capabilities
-  const [cardTilts, setCardTilts] = useState<CardTilt[]>([
-    { x: 0, y: 0, px: 0, py: 0, hovered: false },
-    { x: 0, y: 0, px: 0, py: 0, hovered: false },
-    { x: 0, y: 0, px: 0, py: 0, hovered: false },
-  ]);
+  // Auth Form State
+  const [activeTab, setActiveAuthTab] = useState<'signin' | 'signup'>('signin');
+  const [signInIdentifier, setSignInIdentifier] = useState('');
+  const [signInPassword, setSignInPassword] = useState('');
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
 
-  // Clean, sophisticated scenario descriptors (No red in the star/middle)
+  const [signUpName, setSignUpName] = useState('');
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [signUpConfirmPassword, setSignUpConfirmPassword] = useState('');
+  const [signUpRole, setSignUpRole] = useState('Executive Sovereign Client');
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Clean, sophisticated scenario descriptors
   const getScenarioData = () => {
     switch (currentScenarioId) {
       case 'digital_arrest':
@@ -46,9 +58,7 @@ export const CinematicHero: React.FC = () => {
           badge: 'THREAT INTERCEPTED',
           badgeTone: 'rose',
           titleHighlight: 'shields',
-          amount: '₹2,40,000',
           headline: 'Digital Arrest Scam Intercepted',
-          subtext: 'Synthetic police impersonation and coercive escrow demands detected in real time.',
           targetTab: 'fraud' as const,
         };
       case 'fake_kyc':
@@ -56,9 +66,7 @@ export const CinematicHero: React.FC = () => {
           badge: 'PHISHING VECTOR BLOCKED',
           badgeTone: 'rose',
           titleHighlight: 'neutralizes',
-          amount: '₹45,000',
           headline: 'Fake KYC Phishing Quarantined',
-          subtext: 'Malicious PAN-linking gateway impersonating NPCI isolated before credentials leaked.',
           targetTab: 'fraud' as const,
         };
       case 'financial_distress':
@@ -66,9 +74,7 @@ export const CinematicHero: React.FC = () => {
           badge: 'BUFFER CONTRACTION',
           badgeTone: 'amber',
           titleHighlight: 'balances',
-          amount: '1.56 Mo Runway',
           headline: 'Predictive Runway Advisory Active',
-          subtext: 'Discretionary outflows expanded by 28%. Dynamic cashflow stabilization initiated.',
           targetTab: 'health' as const,
         };
       case 'legitimate_vendor':
@@ -77,9 +83,7 @@ export const CinematicHero: React.FC = () => {
           badge: 'PERIMETER SECURE',
           badgeTone: 'emerald',
           titleHighlight: 'protects',
-          amount: '₹18,500 Disbursed',
           headline: 'All Perimeters Clear',
-          subtext: 'Autonomous behavioral telemetry confirms zero coercive friction across active channels.',
           targetTab: 'fraud' as const,
         };
     }
@@ -108,14 +112,13 @@ export const CinematicHero: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Track active scenario for canvas dynamic color lerping without re-triggering
+  // Track active scenario for canvas dynamic color lerping
   const scenarioRef = useRef(scenario);
   useEffect(() => {
     scenarioRef.current = scenario;
   }, [scenario]);
 
-  // 3D Canvas Star & Warp Camera Journey
-  // Smoothly interpolates to the active scenario's tone color
+  // 3D Canvas Star & Particle Field Journey with Scroll-Warp
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -135,266 +138,167 @@ export const CinematicHero: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     // ── 1. Warp Field Ambient Space Stars ──
-    const NUM_WARP_STARS = 160;
+    const NUM_WARP_STARS = 180;
     const warpStars: { x: number; y: number; z: number; size: number }[] = [];
     for (let i = 0; i < NUM_WARP_STARS; i++) {
       warpStars.push({
-        x: (Math.random() - 0.5) * width * 2.2,
-        y: (Math.random() - 0.5) * height * 2.2,
+        x: (Math.random() - 0.5) * width * 2.4,
+        y: (Math.random() - 0.5) * height * 2.4,
         z: Math.random() * 1200 - 200,
-        size: Math.random() * 1.1 + 0.4,
+        size: Math.random() * 1.2 + 0.4,
       });
     }
 
     // ── 2. The 3D Neural Star Sphere Particles ──
     const NUM_STAR_NODES = 320;
-    const STAR_RADIUS = 145;
-    const starNodes: { x: number; y: number; z: number; size: number; alpha: number }[] = [];
+    const starNodes: {
+      origX: number;
+      origY: number;
+      origZ: number;
+      radius: number;
+      baseSize: number;
+      alpha: number;
+      pulseOffset: number;
+    }[] = [];
+
+    const baseRadius = Math.min(width, height) * 0.28;
 
     for (let i = 0; i < NUM_STAR_NODES; i++) {
-      const phi = Math.acos(-1 + (2 * i) / NUM_STAR_NODES);
-      const theta = Math.sqrt(NUM_STAR_NODES * Math.PI) * phi;
+      const phi = Math.acos(1 - (2 * (i + 0.5)) / NUM_STAR_NODES);
+      const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+
+      const r = baseRadius * (0.92 + Math.random() * 0.16);
+      const nx = r * Math.sin(phi) * Math.cos(theta);
+      const ny = r * Math.sin(phi) * Math.sin(theta);
+      const nz = r * Math.cos(phi);
+
       starNodes.push({
-        x: STAR_RADIUS * Math.cos(theta) * Math.sin(phi),
-        y: STAR_RADIUS * Math.sin(theta) * Math.sin(phi),
-        z: STAR_RADIUS * Math.cos(phi),
-        size: Math.random() * 1.3 + 0.6,
-        alpha: Math.random() * 0.4 + 0.25,
+        origX: nx,
+        origY: ny,
+        origZ: nz,
+        radius: r,
+        baseSize: Math.random() * 1.8 + 0.8,
+        alpha: Math.random() * 0.5 + 0.4,
+        pulseOffset: Math.random() * Math.PI * 2,
       });
     }
 
-    // ── 3. 3D Planetary Celestial Rings ──
-    const RINGS = [
-      { radius: STAR_RADIUS * 1.35, tilt: 0.92, speed: 0.007, count: 60, color: 'rgba(56, 189, 248, 0.35)' },
-      { radius: STAR_RADIUS * 1.68, tilt: -0.65, speed: -0.005, count: 70, color: 'rgba(45, 212, 191, 0.25)' },
-      { radius: STAR_RADIUS * 2.00, tilt: 0.35, speed: 0.003, count: 45, color: 'rgba(148, 163, 184, 0.2)' },
-    ];
+    let time = 0;
+    let smoothMouseX = 0;
+    let smoothMouseY = 0;
 
-    let smoothProgress = 0;
-    let angleY = 0;
-    let angleX = 0;
-    const FOCAL_LENGTH = 440;
-
-    // Active color for smooth interpolation
-    let activeColor = [56, 189, 248]; // Default Sky Blue
+    // Color Lerp Engine
+    let currentR = 56;
+    let currentG = 189;
+    let currentB = 248;
 
     const render = () => {
-      ctx.clearRect(0, 0, width, height);
-      const cx = width / 2;
-      const cy = height / 2;
+      time += 0.016;
 
-      // Determine target color based on active scenario badgeTone
-      let targetColor = [56, 189, 248]; // sky-400
-      const tone = scenarioRef.current.badgeTone;
-      if (tone === 'rose') targetColor = [225, 29, 72]; // rose-600
-      else if (tone === 'amber') targetColor = [245, 158, 11]; // amber-500
-      else if (tone === 'emerald') targetColor = [16, 185, 129]; // emerald-500
+      ctx.fillStyle = '#07090e';
+      ctx.fillRect(0, 0, width, height);
 
-      // Smooth color lerp
-      activeColor[0] += (targetColor[0] - activeColor[0]) * 0.05;
-      activeColor[1] += (targetColor[1] - activeColor[1]) * 0.05;
-      activeColor[2] += (targetColor[2] - activeColor[2]) * 0.05;
-      const [cr, cg, cb] = activeColor.map(Math.round);
+      // Target Tone Color based on Active Scenario
+      const sc = scenarioRef.current;
+      let targetR = 56, targetG = 189, targetB = 248;
+      if (sc.badgeTone === 'rose') {
+        targetR = 244; targetG = 63; targetB = 94;
+      } else if (sc.badgeTone === 'amber') {
+        targetR = 245; targetG = 158; targetB = 11;
+      } else if (sc.badgeTone === 'emerald') {
+        targetR = 16; targetG = 185; targetB = 129;
+      }
 
-      // Ultra-smooth scroll lerp for buttery transitions
-      smoothProgress += (scrollProgress - smoothProgress) * 0.07;
+      currentR += (targetR - currentR) * 0.04;
+      currentG += (targetG - currentG) * 0.04;
+      currentB += (targetB - currentB) * 0.04;
 
-      // ── Continuous Camera Zoom Math ──
-      const diveProgress = Math.min(1, Math.max(0, (smoothProgress - 0.12) / 0.68));
-      // Smooth continuous S-curve (cosine ease)
-      const easedDive = 0.5 - 0.5 * Math.cos(diveProgress * Math.PI);
+      const rInt = Math.round(currentR);
+      const gInt = Math.round(currentG);
+      const bInt = Math.round(currentB);
 
-      // Camera travels smoothly through the center of the star
-      const cameraZ = easedDive * (STAR_RADIUS * 2.4);
+      smoothMouseX += (mousePos.x - smoothMouseX) * 0.05;
+      smoothMouseY += (mousePos.y - smoothMouseY) * 0.05;
 
-      // Smooth mouse tilt with soft inertial damping
-      const targetAngleY = mousePos.x * 0.4 + smoothProgress * 0.7;
-      const targetAngleX = -mousePos.y * 0.4 - easedDive * 0.2;
-      angleY += (targetAngleY - angleY) * 0.045 + 0.002;
-      angleX += (targetAngleX - angleX) * 0.045;
+      const centerX = width * 0.5;
+      const centerY = height * 0.5;
 
-      const cosY = Math.cos(angleY);
-      const sinY = Math.sin(angleY);
-      const cosX = Math.cos(angleX);
-      const sinX = Math.sin(angleX);
+      const scrollVal = trackRef.current ? scrollProgress : 0;
+      const speedMultiplier = 1 + scrollVal * 3.5;
 
-      // ── Render Warp Field Ambient Space Stars ──
-      const warpSpeed = easedDive * 22 + 0.7;
-      ctx.fillStyle = '#cbd5e1';
+      // ── Ambient Core Aura ──
+      const coreRadius = baseRadius * (1.3 + scrollVal * 0.6);
+      const coreGlow = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        0,
+        centerX,
+        centerY,
+        coreRadius
+      );
+      coreGlow.addColorStop(0, `rgba(${rInt}, ${gInt}, ${bInt}, ${0.18 * (1 - scrollVal * 0.5)})`);
+      coreGlow.addColorStop(0.5, `rgba(${rInt}, ${gInt}, ${bInt}, 0.05)`);
+      coreGlow.addColorStop(1, 'transparent');
+
+      ctx.fillStyle = coreGlow;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, coreRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ── Render 3D Warp Stars (Zooms as you scroll) ──
       for (let i = 0; i < warpStars.length; i++) {
-        const ws = warpStars[i];
-        ws.z -= warpSpeed;
-        if (ws.z < -200) ws.z += 1400;
+        const star = warpStars[i];
+        star.z -= 0.8 * speedMultiplier;
+        if (star.z < -200) star.z = 1000;
 
-        const pzRel = ws.z - cameraZ * 0.3 + 400;
-        if (pzRel > 10) {
-          const scale = FOCAL_LENGTH / pzRel;
-          const sx = cx + ws.x * scale;
-          const sy = cy + ws.y * scale;
+        const fov = 400;
+        const scale = fov / (fov + star.z);
+        const sx = centerX + star.x * scale;
+        const sy = centerY + star.y * scale;
 
-          if (sx >= 0 && sx <= width && sy >= 0 && sy <= height) {
-            const alpha = Math.min(0.45, Math.max(0.05, (1200 - pzRel) / 1400));
-            ctx.globalAlpha = alpha;
-
-            if (easedDive > 0.1) {
-              const streakLen = easedDive * 8 * scale;
-              const angle = Math.atan2(sy - cy, sx - cx);
-              ctx.strokeStyle = `rgba(203, 213, 225, ${alpha * 0.4})`;
-              ctx.lineWidth = ws.size * scale * 0.5;
-              ctx.beginPath();
-              ctx.moveTo(sx, sy);
-              ctx.lineTo(sx - Math.cos(angle) * streakLen, sy - Math.sin(angle) * streakLen);
-              ctx.stroke();
-            } else {
-              ctx.beginPath();
-              ctx.arc(sx, sy, ws.size * scale * 0.7, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
-      }
-
-      // ── Render 3D Star Soft Core Glow (Pure Starlight - Zero Red) ──
-      const starFade = Math.max(0, 1 - Math.max(0, (smoothProgress - 0.52) / 0.35));
-      const coreExpansion = 1 + Math.pow(easedDive, 2.2) * 10;
-      const coreRadius = (STAR_RADIUS * 0.5) * coreExpansion;
-
-      if (starFade > 0.01) {
-        // Soft celestial dynamic halo
-        const haloGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreRadius * 2.0);
-        haloGrad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, 0.12)`);
-        haloGrad.addColorStop(0.4, `rgba(${cr}, ${cg}, ${cb}, 0.05)`);
-        haloGrad.addColorStop(0.8, 'rgba(7, 9, 14, 0.01)');
-        haloGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = haloGrad;
-        ctx.globalAlpha = starFade;
-        ctx.beginPath();
-        ctx.arc(cx, cy, coreRadius * 2.0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Deep serene dynamic starlight core
-        const coreGrad = ctx.createRadialGradient(cx, cy, 1, cx, cy, coreRadius);
-        coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
-        coreGrad.addColorStop(0.25, `rgba(${cr}, ${cg}, ${cb}, 0.35)`);
-        coreGrad.addColorStop(0.65, 'rgba(7, 9, 14, 0.85)');
-        coreGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = coreGrad;
-        ctx.globalAlpha = starFade;
-        ctx.beginPath();
-        ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // ── Render 3D Planetary Orbital Rings ──
-        RINGS.forEach(ring => {
-          ctx.save();
-          ctx.translate(cx, cy);
-          const ringRadius = ring.radius * (1 + easedDive * 3.2);
-          const ringSin = Math.sin(ring.tilt);
-
+        if (sx >= 0 && sx <= width && sy >= 0 && sy <= height) {
+          const alpha = Math.min(0.7, (1 - star.z / 1000) * 0.7);
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx.beginPath();
-          for (let a = 0; a <= Math.PI * 2; a += 0.14) {
-            const rx = ringRadius * Math.cos(a);
-            const rz = ringRadius * Math.sin(a);
-            const px = rx * cosY - rz * sinY;
-            const pz = rx * sinY + rz * cosY;
-            const py = rz * ringSin;
-
-            const pzRel = pz - cameraZ + FOCAL_LENGTH;
-            if (pzRel > 15) {
-              const scale = FOCAL_LENGTH / pzRel;
-              const screenX = px * scale;
-              const screenY = py * scale;
-              if (a === 0) ctx.moveTo(screenX, screenY);
-              else ctx.lineTo(screenX, screenY);
-            }
-          }
-          ctx.strokeStyle = ring.color;
-          ctx.lineWidth = 0.75;
-          ctx.globalAlpha = starFade * 0.7;
-          ctx.stroke();
-
-          // Ring Node Particles
-          const ringOffset = Date.now() * ring.speed * 0.04 + smoothProgress * 1.2;
-          for (let i = 0; i < ring.count; i++) {
-            const a = (i / ring.count) * Math.PI * 2 + ringOffset;
-            const rx = ringRadius * Math.cos(a);
-            const rz = ringRadius * Math.sin(a);
-            const px = rx * cosY - rz * sinY;
-            const pz = rx * sinY + rz * cosY;
-            const py = rz * ringSin;
-
-            const pzRel = pz - cameraZ + FOCAL_LENGTH;
-            if (pzRel > 15) {
-              const scale = FOCAL_LENGTH / pzRel;
-              const screenX = px * scale;
-              const screenY = py * scale;
-              const alpha = Math.max(0.06, Math.min(0.5, (pzRel) / (FOCAL_LENGTH * 2)));
-
-              ctx.fillStyle = ring.color;
-              ctx.globalAlpha = alpha * starFade;
-              ctx.beginPath();
-              ctx.arc(screenX, screenY, (i % 6 === 0 ? 1.6 : 0.9) * scale, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-          ctx.restore();
-        });
-
-        // ── Project and Render 3D Neural Star Nodes ──
-        const projected = starNodes
-          .map(p => {
-            let x1 = p.x * cosY - p.z * sinY;
-            let z1 = p.x * sinY + p.z * cosY;
-            let y2 = p.y * cosX - z1 * sinX;
-            let z2 = p.y * sinX + z1 * cosX;
-
-            const pzRel = z2 - cameraZ + FOCAL_LENGTH;
-            const scale = FOCAL_LENGTH / Math.max(12, pzRel);
-
-            return {
-              screenX: cx + x1 * scale,
-              screenY: cy + y2 * scale,
-              scale,
-              z: z2,
-              pzRel,
-              size: p.size * scale,
-              alpha: pzRel <= 25 ? 0 : p.alpha * Math.min(1, (pzRel - 25) / 100),
-            };
-          })
-          .filter(p => p.pzRel > 20);
-
-        projected.sort((a, b) => a.z - b.z);
-
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i < projected.length; i++) {
-          const p = projected[i];
-          if (p.alpha <= 0.02) continue;
-
-          ctx.globalAlpha = p.alpha * starFade * 0.65;
-          ctx.fillStyle = p.z > 0 ? '#38bdf8' : '#cbd5e1';
-
-          ctx.beginPath();
-          ctx.arc(p.screenX, p.screenY, p.size * 0.8, 0, Math.PI * 2);
+          ctx.arc(sx, sy, Math.max(0.4, star.size * scale * (1 + scrollVal)), 0, Math.PI * 2);
           ctx.fill();
-
-          // Delicate connecting lines
-          if (i % 4 === 0 && easedDive < 0.55) {
-            for (let j = i + 1; j < Math.min(i + 3, projected.length); j++) {
-              const p2 = projected[j];
-              const dist = Math.hypot(p.screenX - p2.screenX, p.screenY - p2.screenY);
-              if (dist < 38 * (1 + easedDive * 1.1)) {
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-                ctx.beginPath();
-                ctx.moveTo(p.screenX, p.screenY);
-                ctx.lineTo(p2.screenX, p2.screenY);
-                ctx.stroke();
-              }
-            }
-          }
         }
       }
 
-      ctx.globalAlpha = 1;
+      // ── Render 3D Neural Sphere Nodes ──
+      const rotY = time * 0.25 + smoothMouseX * 0.6 + scrollVal * 1.5;
+      const rotX = Math.sin(time * 0.15) * 0.12 - smoothMouseY * 0.6;
+
+      const cosY = Math.cos(rotY);
+      const sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX);
+      const sinX = Math.sin(rotX);
+
+      const sphereScaleFactor = 1 + scrollVal * 1.2;
+
+      for (let i = 0; i < starNodes.length; i++) {
+        const node = starNodes[i];
+
+        let x1 = (node.origX * sphereScaleFactor) * cosY + (node.origZ * sphereScaleFactor) * sinY;
+        let z1 = -(node.origX * sphereScaleFactor) * sinY + (node.origZ * sphereScaleFactor) * cosY;
+        let y1 = (node.origY * sphereScaleFactor) * cosX - z1 * sinX;
+        let z2 = (node.origY * sphereScaleFactor) * sinX + z1 * cosX;
+
+        const fov = 500;
+        const scale = fov / (fov + z2 + 100);
+        const px = centerX + x1 * scale;
+        const py = centerY + y1 * scale;
+
+        const depthFactor = (z2 + baseRadius) / (baseRadius * 2);
+        const pulse = Math.sin(time * 2 + node.pulseOffset) * 0.25 + 0.75;
+        const alpha = Math.max(0.08, Math.min(0.85, (depthFactor * 0.7 + 0.2) * pulse * (1 - scrollVal * 0.4)));
+
+        ctx.fillStyle = `rgba(${rInt}, ${gInt}, ${bInt}, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(px, py, Math.max(0.5, node.baseSize * scale * pulse), 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       animationId = requestAnimationFrame(render);
     };
 
@@ -404,104 +308,79 @@ export const CinematicHero: React.FC = () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [mousePos, scrollProgress]);
+  }, [scrollProgress]);
 
-  // Handle Mouse Coordinates
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const x = (e.clientX / window.innerWidth) * 2 - 1;
-    const y = (e.clientY / window.innerHeight) * 2 - 1;
-    setMousePos({ x, y });
-    setMousePixel({ x: e.clientX, y: e.clientY });
-  };
-
-  // Card Mouse Tilt handlers for Platform Capabilities
-  const handleCardMouseMove = (index: number, e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    const px = e.clientX - rect.left;
-    const py = e.clientY - rect.top;
-
-    setCardTilts(prev => {
-      const next = [...prev];
-      next[index] = { x, y, px, py, hovered: true };
-      return next;
-    });
-  };
-
-  const handleCardMouseLeave = (index: number) => {
-    setCardTilts(prev => {
-      const next = [...prev];
-      next[index] = { x: 0, y: 0, px: 0, py: 0, hovered: false };
-      return next;
-    });
-  };
-
-  // ── Silky Smooth Continuous Transition Math ──
-  // Phase 1: Hero text gracefully fades out (0.00 -> 0.22)
-  const heroFadeRaw = Math.min(1, Math.max(0, scrollProgress / 0.20));
-  const heroFadeOut = 1 - (0.5 - 0.5 * Math.cos(heroFadeRaw * Math.PI));
-  const heroTranslateY = -scrollProgress * 200;
-
-  // Phase 3: Platform Capabilities smoothly emerges with a long cosine S-curve (0.48 -> 0.88)
-  const emergeRaw = Math.min(1, Math.max(0, (scrollProgress - 0.46) / 0.38));
-  const emergeProgress = 0.5 - 0.5 * Math.cos(emergeRaw * Math.PI);
-  const emergeScale = 0.92 + emergeProgress * 0.08;
-  const emergeTranslateY = (1 - emergeProgress) * 25;
-  const isCapabilitiesInteractive = emergeProgress > 0.6;
-
-  const scrollToCapabilities = () => {
     if (!trackRef.current) return;
-    const scrollableDist = trackRef.current.offsetHeight - window.innerHeight;
-    window.scrollTo({
-      top: trackRef.current.offsetTop + scrollableDist,
-      behavior: 'smooth'
-    });
+    const rect = trackRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePos({ x, y });
+    setMousePixel({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const scrollToAuth = () => {
+    if (!trackRef.current) return;
+    const scrollTarget = trackRef.current.offsetTop + window.innerHeight * 0.95;
+    window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
   };
 
   const scrollToHero = () => {
-    if (!trackRef.current) return;
-    window.scrollTo({
-      top: trackRef.current.offsetTop,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const pillars = [
-    {
-      icon: Shield,
-      title: 'Fraud Intelligence',
-      tag: 'REAL-TIME CHECK',
-      description: 'Test live transfers against our Core Banking Registry. Spots name mismatches, mule accounts, and coercive scam patterns before money moves.',
-      actionLabel: 'Launch Simulator',
-      tab: 'fraud' as const,
-      color: 'text-rose-400',
-      borderHover: 'hover:border-rose-500/30',
-      glowColor: 'rgba(225, 29, 72, 0.08)',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Financial Health',
-      tag: 'RESILIENCE MATRIX',
-      description: 'Track runway velocity, liquid buffers, and shock absorption. Balances essential vs discretionary burn with predictive stress testing.',
-      actionLabel: 'Explore Health Matrix',
-      tab: 'health' as const,
-      color: 'text-emerald-400',
-      borderHover: 'hover:border-emerald-500/30',
-      glowColor: 'rgba(5, 150, 105, 0.08)',
-    },
-    {
-      icon: Cpu,
-      title: 'AI Governance & Audit',
-      tag: 'ZERO-KNOWLEDGE',
-      description: 'Audit explainable neural reasoning, bias safeguards, and cryptographic verification ledger. Zero private banking data leaves your device.',
-      actionLabel: 'Inspect Pipeline',
-      tab: 'ai-center' as const,
-      color: 'text-sky-400',
-      borderHover: 'hover:border-sky-500/30',
-      glowColor: 'rgba(2, 132, 199, 0.08)',
-    },
-  ];
+  // Auth Handlers
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setIsLoading(true);
+
+    const res = await signIn(signInIdentifier, signInPassword);
+    setIsLoading(false);
+
+    if (!res.success) {
+      setErrorMessage(res.error || 'Authentication failed. Please check credentials.');
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+
+    if (signUpPassword !== signUpConfirmPassword) {
+      setErrorMessage('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    setIsLoading(true);
+    const res = await signUp({
+      name: signUpName,
+      email: signUpEmail,
+      password: signUpPassword,
+      role: signUpRole,
+    });
+    setIsLoading(false);
+
+    if (!res.success) {
+      setErrorMessage(res.error || 'Failed to create account.');
+    }
+  };
+
+  const handleDemoAccountLogin = async (key: 'deepak' | 'priya' | 'vikram') => {
+    setErrorMessage('');
+    setIsLoading(true);
+    await switchDemoPersona(key);
+    setIsLoading(false);
+  };
+
+  // Smooth Interpolations for 2-Layer Cinematic Scroll Transition
+  const heroFadeOut = Math.max(0, 1 - scrollProgress * 2.6);
+  const heroTranslateY = -scrollProgress * 220;
+
+  const authEmergeProgress = Math.min(1, Math.max(0, (scrollProgress - 0.3) * 2.4));
+  const authEmergeScale = 0.94 + authEmergeProgress * 0.06;
+  const authEmergeTranslateY = (1 - authEmergeProgress) * 70;
+  const isAuthInteractive = authEmergeProgress > 0.45;
 
   return (
     <div
@@ -512,7 +391,7 @@ export const CinematicHero: React.FC = () => {
         setIsHovered(false);
         setMousePos({ x: 0, y: 0 });
       }}
-      className="relative w-full h-[260vh] select-none"
+      className="relative w-full h-[220vh] select-none"
     >
       {/* ── STICKY VIEWPORT STAGE ── */}
       <div className="sticky top-0 h-screen w-full overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#07090e] text-white shadow-2xl flex flex-col items-center justify-center">
@@ -530,24 +409,23 @@ export const CinematicHero: React.FC = () => {
         {/* Background Star Dust Grid */}
         <div className="pointer-events-none absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] bg-[size:32px_32px]" />
 
-        {/* ── 3D CANVAS STAGE (Full-bleed background) ── */}
+        {/* ── 3D CANVAS STAGE ── */}
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full pointer-events-none z-0"
         />
 
-        {/* ── LAYER 1: HERO SCENE (Space Scene & Headline) ── */}
+        {/* ════ LAYER 1: HERO HEADLINE & ACTIONS (Fades on scroll) ════ */}
         <div
-          className="absolute inset-0 z-10 flex flex-col items-center justify-between px-6 pt-12 pb-6 max-w-5xl mx-auto w-full text-center transition-all duration-150"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-between px-6 pt-12 pb-6 max-w-4xl mx-auto w-full text-center transition-all duration-150"
           style={{
             opacity: heroFadeOut,
-            transform: `translateY(${heroTranslateY}px) scale(${1 + (1 - heroFadeOut) * 0.08})`,
+            transform: `translateY(${heroTranslateY}px) scale(${1 + (1 - heroFadeOut) * 0.06})`,
             pointerEvents: heroFadeOut > 0.15 ? 'auto' : 'none',
           }}
         >
           {/* Top Headline & Pill Group */}
-          <div className="flex flex-col items-center space-y-3 sm:space-y-4 max-w-3xl">
-            {/* Minimal Glass Pill Tag */}
+          <div className="flex flex-col items-center space-y-4 max-w-3xl pt-4">
             <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 backdrop-blur-xl shadow-inner">
               <span className="h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]" />
               <span className="font-mono text-[11px] font-semibold tracking-widest text-white/90 uppercase">
@@ -559,7 +437,6 @@ export const CinematicHero: React.FC = () => {
               </span>
             </div>
 
-            {/* Grand Centered Editorial Headline with Luxury Serif */}
             <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal tracking-[-0.01em] text-white leading-[1.08] text-balance">
               Intelligence that{' '}
               <span className="italic text-[1.05em] tracking-normal text-transparent bg-clip-text bg-gradient-to-r from-sky-200 via-teal-200 to-white pr-1">
@@ -576,7 +453,7 @@ export const CinematicHero: React.FC = () => {
             </p>
 
             {/* Action CTAs */}
-            <div className="flex flex-wrap items-center justify-center gap-3.5 pt-1">
+            <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
               <button
                 onClick={() => setActiveTab(scenario.targetTab)}
                 className="group relative inline-flex items-center justify-center gap-2.5 rounded-full px-6 py-3 text-sm font-semibold tracking-wide text-black transition-all duration-300 bg-white hover:bg-sky-400 hover:shadow-[0_0_20px_rgba(56,189,248,0.3)] active:scale-95"
@@ -587,313 +464,315 @@ export const CinematicHero: React.FC = () => {
               </button>
 
               <button
-                onClick={scrollToCapabilities}
+                onClick={scrollToAuth}
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/[0.05] px-5 py-3 text-sm font-medium tracking-wide text-white/90 backdrop-blur-md transition-all hover:border-white/40 hover:bg-white/10 active:scale-95"
               >
-                <span>Travel to Capabilities</span>
+                <span>Authenticate / Enter Network</span>
                 <ChevronDown className="h-4 w-4 opacity-60" />
               </button>
             </div>
           </div>
 
-          {/* Clean Center: Pure Star Object, Zero Red Blink */}
-          <div className="relative my-auto flex flex-col items-center justify-center pointer-events-none">
-            {/* Clean, subtle scroll indicator */}
-            <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-white/35 uppercase">
-              <span>Scroll down to enter the star</span>
-              <ChevronDown className="h-3 w-3" />
+          {/* Clean Center Scroll Cue */}
+          <div className="relative my-auto flex flex-col items-center justify-center pointer-events-none pb-2">
+            <div className="flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-white/40 uppercase">
+              <span>Scroll down to Enter Auth Center</span>
+              <ChevronDown className="h-3 w-3 animate-bounce" />
             </div>
-          </div>
-
-          {/* Bottom Scenario Switcher Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-mono text-white/50 pt-2 pb-2">
-            <span className="text-[11px] uppercase tracking-wider font-medium text-white/40">Switch Scenarios:</span>
-            <button
-              onClick={() => switchScenario('digital_arrest')}
-              className={`rounded-full px-3.5 py-1.5 transition-all border ${
-                currentScenarioId === 'digital_arrest'
-                  ? 'bg-rose-600 text-white border-rose-500 font-bold shadow-[0_0_10px_rgba(225,29,72,0.3)]'
-                  : 'bg-white/[0.04] border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              🚨 Digital Arrest
-            </button>
-            <button
-              onClick={() => switchScenario('fake_kyc')}
-              className={`rounded-full px-3.5 py-1.5 transition-all border ${
-                currentScenarioId === 'fake_kyc'
-                  ? 'bg-rose-600 text-white border-rose-500 font-bold shadow-[0_0_10px_rgba(225,29,72,0.3)]'
-                  : 'bg-white/[0.04] border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              ⚠️ Fake KYC Phishing
-            </button>
-            <button
-              onClick={() => switchScenario('financial_distress')}
-              className={`rounded-full px-3.5 py-1.5 transition-all border ${
-                currentScenarioId === 'financial_distress'
-                  ? 'bg-amber-600 text-white border-amber-500 font-bold shadow-[0_0_10px_rgba(217,119,6,0.3)]'
-                  : 'bg-white/[0.04] border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              📉 Distress Warning
-            </button>
-            <button
-              onClick={() => switchScenario('legitimate_vendor')}
-              className={`rounded-full px-3.5 py-1.5 transition-all border ${
-                currentScenarioId === 'legitimate_vendor'
-                  ? 'bg-emerald-600 text-white border-emerald-500 font-bold shadow-[0_0_10px_rgba(5,150,105,0.3)]'
-                  : 'bg-white/[0.04] border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              ✓ Verified Vendor
-            </button>
           </div>
         </div>
 
-        {/* ── LAYER 2: PLATFORM CAPABILITIES (High-tech interactive command deck) ── */}
+        {/* ════ LAYER 2: AUTHENTICATION CENTER (Emerges on scroll) ════ */}
         <div
-          className="absolute inset-0 z-20 flex flex-col justify-center items-center px-4 sm:px-8 lg:px-12 py-6 max-w-7xl mx-auto w-full transition-all duration-200 ease-out"
+          className="absolute inset-0 z-20 flex flex-col justify-start items-center px-4 sm:px-8 py-8 max-w-5xl mx-auto w-full transition-all duration-200 ease-out overflow-y-auto"
           style={{
-            opacity: emergeProgress,
-            transform: `scale(${emergeScale}) translateY(${emergeTranslateY}px)`,
-            pointerEvents: isCapabilitiesInteractive ? 'auto' : 'none',
+            opacity: authEmergeProgress,
+            transform: `scale(${authEmergeScale}) translateY(${authEmergeTranslateY}px)`,
+            pointerEvents: isAuthInteractive ? 'auto' : 'none',
           }}
         >
           {/* Header Bar & Orbit Return */}
-          <div className="w-full flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/15 pb-3.5 mb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse" />
-                <span className="font-mono text-[11px] uppercase tracking-widest text-sky-400 font-bold">
-                  // SOVEREIGN DEFENSE CAPABILITIES · LIVE RADAR ACTIVE
-                </span>
-              </div>
-              <h2 className="font-display text-xl sm:text-2xl lg:text-3xl font-light tracking-tight text-white mt-1">
-                Engineered for <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-sky-400">Total Capital Sovereignty.</span>
-              </h2>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="hidden md:inline-flex items-center gap-1.5 font-mono text-[10px] text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
-                AUTONOMOUS ENGINE ONLINE
+          <div className="w-full flex items-center justify-between border-b border-white/15 pb-3 mb-6 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-accent-cyan shadow-[0_0_8px_#00d2ff] animate-pulse" />
+              <span className="font-mono text-xs uppercase tracking-widest text-accent-cyan font-bold">
+                // ENTER THE AEGIS INTELLIGENCE NETWORK
               </span>
-              <button
-                onClick={scrollToHero}
-                className="inline-flex items-center gap-1.5 font-mono text-xs text-white/60 hover:text-white transition-colors self-start sm:self-auto bg-white/[0.05] border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/10"
-              >
-                <ArrowUp className="h-3.5 w-3.5" />
-                <span>Orbit View</span>
-              </button>
             </div>
+
+            <button
+              onClick={scrollToHero}
+              className="inline-flex items-center gap-1.5 font-mono text-xs text-white/70 hover:text-white transition-colors bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full hover:bg-white/20 shadow-sm"
+            >
+              <ArrowUp className="h-3.5 w-3.5" />
+              <span>Orbit View</span>
+            </button>
           </div>
 
-          {/* 3 Rich Interactive Capability Cards with Live Interactive Previews */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+          {/* Main Auth Form Box with High-Contrast Dark Theme */}
+          <div className="w-full max-w-xl rounded-3xl border border-white/20 bg-[#070b14]/95 p-6 sm:p-7 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative shrink-0 ring-1 ring-white/10">
             
-            {/* ── CARD 1: FRAUD INTELLIGENCE ── */}
-            <div
-              onMouseMove={(e) => handleCardMouseMove(0, e)}
-              onMouseLeave={() => handleCardMouseLeave(0)}
-              onClick={() => setActiveTab('fraud')}
-              style={{
-                transform: cardTilts[0].hovered
-                  ? `perspective(800px) rotateX(${-cardTilts[0].y * 6}deg) rotateY(${cardTilts[0].x * 6}deg) translateY(-4px) scale(1.01)`
-                  : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
-                transition: cardTilts[0].hovered
-                  ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
-                  : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
-              }}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-500/20 bg-black/70 p-5 sm:p-6 backdrop-blur-2xl shadow-xl hover:border-rose-500/50 cursor-pointer transition-all"
-            >
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400 group-hover:scale-110 transition-transform">
-                    <Shield className="h-5 w-5" />
+            {/* Tab Switcher */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3.5 mb-5">
+              <div className="flex items-center gap-2 rounded-xl bg-black/50 p-1 border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => { setActiveAuthTab('signin'); setErrorMessage(''); }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold font-sans transition-all ${
+                    activeTab === 'signin'
+                      ? 'bg-accent-cyan text-black shadow-md'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  Sign In to Platform
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveAuthTab('signup'); setErrorMessage(''); }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold font-sans transition-all ${
+                    activeTab === 'signup'
+                      ? 'bg-accent-cyan text-black shadow-md'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  Create Real Account
+                </button>
+              </div>
+
+              <span className="font-mono text-[10px] text-white/50 hidden sm:inline-flex items-center gap-1">
+                <Lock className="h-3 w-3 text-emerald-400" />
+                PBKDF2-SHA256
+              </span>
+            </div>
+
+            {/* Error Banner */}
+            {errorMessage && (
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose-500/40 bg-rose-500/15 p-3 text-xs text-rose-400 animate-soft-in">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span className="font-sans leading-relaxed">{errorMessage}</span>
+              </div>
+            )}
+
+            {/* SIGN IN FORM */}
+            {activeTab === 'signin' ? (
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div>
+                  <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                    Email Address or User ID
+                  </label>
+                  <div className="relative flex items-center">
+                    <User className="absolute left-3.5 h-4 w-4 text-white/50" />
+                    <input
+                      type="text"
+                      required
+                      value={signInIdentifier}
+                      onChange={(e) => setSignInIdentifier(e.target.value)}
+                      placeholder="e.g. deepak.sharma or user@domain.com"
+                      className="w-full rounded-xl border border-white/20 bg-[#0d1322] pl-10 pr-3.5 py-2.5 font-sans text-sm text-white placeholder:text-white/40 focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan transition-all shadow-inner"
+                    />
                   </div>
-                  <span className="font-mono text-[10px] font-bold tracking-wider text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full uppercase">
-                    REAL-TIME INTERCEPT
-                  </span>
                 </div>
 
                 <div>
-                  <h3 className="font-display text-lg font-bold text-white group-hover:text-rose-300 transition-colors">
-                    Fraud Intelligence
-                  </h3>
-                  <p className="font-sans text-xs text-white/70 leading-relaxed mt-1 font-light">
-                    Intercepts coercive Digital Arrest syndicates, mule networks, and fake KYC phishing gateways in real time.
-                  </p>
-                </div>
-
-                {/* Embedded Mini Interactive Telemetry Widget */}
-                <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-3 space-y-2 font-mono text-[11px]">
-                  <div className="flex items-center justify-between text-rose-300 font-bold">
-                    <span>LIVE RISK ENGINE</span>
-                    <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 text-[10px]">96 / 100 CRITICAL</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-mono text-[11px] font-bold uppercase tracking-wider text-white/80">
+                      Password
+                    </label>
+                    <span className="font-mono text-[10px] text-accent-cyan/80 font-medium">Demo pass: aegis2026</span>
                   </div>
-                  <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-rose-500 h-full rounded-full w-[96%] animate-pulse" />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-white/60 pt-0.5">
-                    <span>Mule Account Flag</span>
-                    <span className="text-rose-400">12 min old</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-rose-400 transition-colors">
-                <span>Launch Fraud Simulator</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </div>
-            </div>
-
-            {/* ── CARD 2: FINANCIAL HEALTH & RESILIENCE ── */}
-            <div
-              onMouseMove={(e) => handleCardMouseMove(1, e)}
-              onMouseLeave={() => handleCardMouseLeave(1)}
-              onClick={() => setActiveTab('health')}
-              style={{
-                transform: cardTilts[1].hovered
-                  ? `perspective(800px) rotateX(${-cardTilts[1].y * 6}deg) rotateY(${cardTilts[1].x * 6}deg) translateY(-4px) scale(1.01)`
-                  : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
-                transition: cardTilts[1].hovered
-                  ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
-                  : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
-              }}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-black/70 p-5 sm:p-6 backdrop-blur-2xl shadow-xl hover:border-emerald-500/50 cursor-pointer transition-all"
-            >
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-                  <span className="font-mono text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase">
-                    RESILIENCE MATRIX
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="font-display text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">
-                    Financial Health
-                  </h3>
-                  <p className="font-sans text-xs text-white/70 leading-relaxed mt-1 font-light">
-                    Predictive cashflow stress testing, emergency runway velocity, and dynamic discretionary buffer insulation.
-                  </p>
-                </div>
-
-                {/* Embedded Mini Interactive Runway Chart Widget */}
-                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2 font-mono text-[11px]">
-                  <div className="flex items-center justify-between text-emerald-300 font-bold">
-                    <span>RUNWAY TRAJECTORY</span>
-                    <span className="text-emerald-400 text-[10px]">81/100 RESILIENT</span>
-                  </div>
-                  {/* Mini SVG Sparkline */}
-                  <div className="h-7 w-full flex items-end">
-                    <svg viewBox="0 0 100 25" className="w-full h-full overflow-visible" fill="none">
-                      <path
-                        d="M0 20 Q 25 15, 50 18 T 75 8 T 100 5"
-                        stroke="#34d399"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <circle cx="100" cy="5" r="3" fill="#34d399" className="animate-ping opacity-75" />
-                      <circle cx="100" cy="5" r="2.5" fill="#34d399" />
-                    </svg>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-white/60 pt-0.5">
-                    <span>Safe Runway</span>
-                    <span className="text-emerald-400 font-bold">3.4 Months</span>
+                  <div className="relative flex items-center">
+                    <Key className="absolute left-3.5 h-4 w-4 text-white/50" />
+                    <input
+                      type={showSignInPassword ? 'text' : 'password'}
+                      required
+                      value={signInPassword}
+                      onChange={(e) => setSignInPassword(e.target.value)}
+                      placeholder="Enter password"
+                      className="w-full rounded-xl border border-white/20 bg-[#0d1322] pl-10 pr-10 py-2.5 font-sans text-sm text-white placeholder:text-white/40 focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan transition-all shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignInPassword(!showSignInPassword)}
+                      className="absolute right-3.5 text-white/50 hover:text-white transition-colors"
+                    >
+                      {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
-              </div>
 
-              <div className="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-emerald-400 transition-colors">
-                <span>Explore Health Matrix</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </div>
-            </div>
-
-            {/* ── CARD 3: AI GOVERNANCE & ZERO-KNOWLEDGE ── */}
-            <div
-              onMouseMove={(e) => handleCardMouseMove(2, e)}
-              onMouseLeave={() => handleCardMouseLeave(2)}
-              onClick={() => setActiveTab('ai-center')}
-              style={{
-                transform: cardTilts[2].hovered
-                  ? `perspective(800px) rotateX(${-cardTilts[2].y * 6}deg) rotateY(${cardTilts[2].x * 6}deg) translateY(-4px) scale(1.01)`
-                  : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
-                transition: cardTilts[2].hovered
-                  ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
-                  : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
-              }}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-sky-500/20 bg-black/70 p-5 sm:p-6 backdrop-blur-2xl shadow-xl hover:border-sky-500/50 cursor-pointer transition-all"
-            >
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-500/30 bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
-                    <Cpu className="h-5 w-5" />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-accent-cyan text-black py-3 font-sans text-sm font-bold shadow-lg hover:bg-accent-cyan/90 active:scale-[0.99] transition-all disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <span className="font-mono text-xs animate-pulse">CRYPTOGRAPHIC VERIFICATION…</span>
+                  ) : (
+                    <>
+                      <span>Authenticate & Access Platform</span>
+                      <ArrowRight className="h-4 w-4 text-black" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              /* SIGN UP FORM */
+              <form onSubmit={handleSignUp} className="space-y-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                      Full Legal Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={signUpName}
+                      onChange={(e) => setSignUpName(e.target.value)}
+                      placeholder="e.g. Alex Vance"
+                      className="w-full rounded-xl border border-white/20 bg-[#0d1322] px-3.5 py-2.5 font-sans text-sm text-white placeholder:text-white/40 focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan transition-all shadow-inner"
+                    />
                   </div>
-                  <span className="font-mono text-[10px] font-bold tracking-wider text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-full uppercase">
-                    ZERO-KNOWLEDGE
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="font-display text-lg font-bold text-white group-hover:text-sky-300 transition-colors">
-                    AI Governance & Audit
-                  </h3>
-                  <p className="font-sans text-xs text-white/70 leading-relaxed mt-1 font-light">
-                    Explainable neural decisioning with immutable cryptographic tamper-proof ledger. Zero PII leaves device.
-                  </p>
-                </div>
-
-                {/* Embedded Mini Cryptographic Verification Hash Widget */}
-                <div className="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-3 space-y-2 font-mono text-[11px]">
-                  <div className="flex items-center justify-between text-sky-300 font-bold">
-                    <span>ZK-PROOF LEDGER</span>
-                    <span className="text-sky-400 text-[10px]">VERIFIED ✓</span>
-                  </div>
-                  <div className="p-1.5 rounded bg-black/50 border border-sky-500/20 text-[10px] text-sky-200 truncate font-mono">
-                    SHA-256: 0x9f4e28...b71c0a
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-white/60 pt-0.5">
-                    <span>Inference Location</span>
-                    <span className="text-sky-400">On-Device Edge</span>
+                  <div>
+                    <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={signUpEmail}
+                      onChange={(e) => setSignUpEmail(e.target.value)}
+                      placeholder="alex.vance@sovereign.bank"
+                      className="w-full rounded-xl border border-white/20 bg-[#0d1322] px-3.5 py-2.5 font-sans text-sm text-white placeholder:text-white/40 focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan transition-all shadow-inner"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
-                <span>Inspect Neural Pipeline</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </div>
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                      Password (6+ chars)
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={signUpPassword}
+                      onChange={(e) => setSignUpPassword(e.target.value)}
+                      placeholder="Password"
+                      className="w-full rounded-xl border border-white/20 bg-[#0d1322] px-3.5 py-2.5 font-sans text-sm text-white placeholder:text-white/40 focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan transition-all shadow-inner"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white/80 mb-1.5">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={signUpConfirmPassword}
+                      onChange={(e) => setSignUpConfirmPassword(e.target.value)}
+                      placeholder="Confirm"
+                      className="w-full rounded-xl border border-white/20 bg-[#0d1322] px-3.5 py-2.5 font-sans text-sm text-white placeholder:text-white/40 focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
 
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-accent-cyan text-black py-3 font-sans text-sm font-bold shadow-lg hover:bg-accent-cyan/90 active:scale-[0.99] transition-all disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <span className="font-mono text-xs animate-pulse">CREATING SOVEREIGN ACCOUNT…</span>
+                  ) : (
+                    <>
+                      <span>Create Real Account</span>
+                      <CheckCircle2 className="h-4 w-4 text-emerald-950" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
           </div>
 
-          {/* Minimalist HUD Telemetry Bar embedded in Platform Capabilities */}
-          <div className="w-full mt-5 border-t border-white/10 pt-3.5">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
-                <div className="font-display text-lg sm:text-xl font-light text-white tracking-tight">14<span className="text-xs font-mono text-white/40 ml-0.5">ms</span></div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Neural Intercept Latency</div>
+          {/* ── 3 DISTINCT COLOR DEMO ACCOUNTS DIRECTLY BELOW AUTH ── */}
+          <div className="w-full max-w-4xl mt-6 space-y-2.5 shrink-0">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-white/70 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-accent-cyan" />
+                Demo Accounts · 1-Click Direct Login:
+              </span>
+              <span className="font-mono text-[9px] text-white/40">Select account to enter platform</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Account 1: Deepak (Emerald / Wealth) */}
+              <div
+                onClick={() => handleDemoAccountLogin('deepak')}
+                className="group rounded-2xl border border-emerald-500/30 bg-[#04130e] hover:bg-[#07241b] p-3.5 cursor-pointer transition-all duration-300 hover:border-emerald-400 hover:shadow-[0_0_25px_rgba(16,185,129,0.25)] flex items-center justify-between text-left shadow-lg"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400 font-display font-bold text-xs border border-emerald-500/40 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                    DS
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-sans text-xs font-bold text-white group-hover:text-emerald-300 transition-colors truncate">
+                      {DEMO_PERSONAS.deepak.name}
+                    </span>
+                    <span className="font-mono text-[9px] text-emerald-400/80 truncate">
+                      {DEMO_PERSONAS.deepak.role}
+                    </span>
+                  </div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-emerald-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
               </div>
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
-                <div className="font-display text-lg sm:text-xl font-light text-emerald-400 tracking-tight">₹4.8<span className="text-xs font-mono text-emerald-400/60 ml-0.5">Cr+</span></div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Simulated Fraud Deflected</div>
+
+              {/* Account 2: Priya (Hyper Cyan / Treasury) */}
+              <div
+                onClick={() => handleDemoAccountLogin('priya')}
+                className="group rounded-2xl border border-accent-cyan/30 bg-[#031522] hover:bg-[#06243b] p-3.5 cursor-pointer transition-all duration-300 hover:border-accent-cyan hover:shadow-[0_0_25px_rgba(0,210,255,0.25)] flex items-center justify-between text-left shadow-lg"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-cyan/15 text-accent-cyan font-display font-bold text-xs border border-accent-cyan/40 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(0,210,255,0.2)]">
+                    PN
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-sans text-xs font-bold text-white group-hover:text-accent-cyan transition-colors truncate">
+                      {DEMO_PERSONAS.priya.name}
+                    </span>
+                    <span className="font-mono text-[9px] text-cyan-300/80 truncate">
+                      {DEMO_PERSONAS.priya.role}
+                    </span>
+                  </div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-accent-cyan opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
               </div>
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
-                <div className="font-display text-lg sm:text-xl font-light text-sky-400 tracking-tight">0<span className="text-xs font-mono text-sky-400/60 ml-0.5">% PII</span></div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Zero-Knowledge On-Device</div>
-              </div>
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
-                <div className="font-display text-lg sm:text-xl font-light text-white tracking-tight">100<span className="text-xs font-mono text-white/40 ml-0.5">%</span></div>
-                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Sovereign Human Control</div>
+
+              {/* Account 3: Vikram (Sovereign Amber / Risk Officer) */}
+              <div
+                onClick={() => handleDemoAccountLogin('vikram')}
+                className="group rounded-2xl border border-amber-500/30 bg-[#1a1205] hover:bg-[#2c1e08] p-3.5 cursor-pointer transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_25px_rgba(245,158,11,0.25)] flex items-center justify-between text-left shadow-lg"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400 font-display font-bold text-xs border border-amber-500/40 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                    VM
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-sans text-xs font-bold text-white group-hover:text-amber-300 transition-colors truncate">
+                      {DEMO_PERSONAS.vikram.name}
+                    </span>
+                    <span className="font-mono text-[9px] text-amber-400/80 truncate">
+                      {DEMO_PERSONAS.vikram.role}
+                    </span>
+                  </div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-amber-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
               </div>
             </div>
           </div>
+
         </div>
+
       </div>
     </div>
   );

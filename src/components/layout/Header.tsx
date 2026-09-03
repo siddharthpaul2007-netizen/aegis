@@ -12,10 +12,10 @@ import {
   Moon,
   ChevronRight,
   Lock,
-  LogIn,
-  User as UserIcon
+  User as UserIcon,
+  Sparkles,
+  Zap
 } from 'lucide-react';
-import { StatusBadge } from '../common/StatusBadge';
 
 // Bespoke AEGIS geometric emblem icon: ||D
 export const AegisTriggerIcon: React.FC<{ className?: string }> = ({ className = "h-5 w-5" }) => (
@@ -45,6 +45,8 @@ interface NavItem {
   index: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
+  accentColor: string;
+  glowColor: string;
 }
 
 export const Header: React.FC = () => {
@@ -63,6 +65,8 @@ export const Header: React.FC = () => {
       sublabel: 'Executive Command & Orbit',
       index: '01',
       icon: Home,
+      accentColor: 'text-accent-cyan',
+      glowColor: 'rgba(0, 210, 255, 0.25)',
     },
     {
       id: 'fraud',
@@ -71,6 +75,8 @@ export const Header: React.FC = () => {
       index: '02',
       icon: Shield,
       badge: currentScenarioId !== 'legitimate_vendor' ? '1 Alert' : undefined,
+      accentColor: 'text-rose-400',
+      glowColor: 'rgba(244, 63, 94, 0.25)',
     },
     {
       id: 'health',
@@ -78,6 +84,8 @@ export const Header: React.FC = () => {
       sublabel: 'Predictive Resilience Runway',
       index: '03',
       icon: TrendingUp,
+      accentColor: 'text-emerald-400',
+      glowColor: 'rgba(16, 185, 129, 0.25)',
     },
     {
       id: 'ai-center',
@@ -85,6 +93,8 @@ export const Header: React.FC = () => {
       sublabel: 'Explainable Neural Telemetry',
       index: '04',
       icon: Cpu,
+      accentColor: 'text-sky-400',
+      glowColor: 'rgba(56, 189, 248, 0.25)',
     },
     {
       id: 'history',
@@ -92,6 +102,8 @@ export const Header: React.FC = () => {
       sublabel: 'Forensic Audit Transcript',
       index: '05',
       icon: History,
+      accentColor: 'text-amber-400',
+      glowColor: 'rgba(245, 158, 11, 0.25)',
     },
   ];
 
@@ -106,7 +118,7 @@ export const Header: React.FC = () => {
     setIsExpanded(true);
   };
 
-  // Graceful hover exit with intentional 220ms delay to prevent accidental collapse/flicker
+  // Intentional 220ms debounce before collapsing to prevent jitter
   const handleMouseLeave = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
@@ -114,8 +126,7 @@ export const Header: React.FC = () => {
     }, 220);
   };
 
-  // Close when selecting a destination tab
-  const handleSelectTab = (tabId: NavItem['id']) => {
+  const handleSelectTab = (tabId: 'command' | 'fraud' | 'health' | 'ai-center' | 'history') => {
     setActiveTab(tabId);
     setIsExpanded(false);
   };
@@ -141,99 +152,113 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      {/* ── TOP-LEFT COMPACT HOVER-EXPANDABLE NAVIGATION ── */}
-      <div
-        ref={navContainerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className="fixed top-4 left-4 z-50 select-none font-sans"
-      >
-        {/* Main Morphing Container */}
+      {/* ── TOP-LEFT COMPACT HOVER-EXPANDABLE NAVIGATION (ONLY ON MODULE PAGES) ── */}
+      {isAuthenticated && activeTab !== 'command' && (
         <div
-          className={`
-            relative overflow-hidden rounded-2xl border transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-            ${
-              isExpanded
-                ? 'w-[310px] sm:w-[330px] border-hairlineStrong bg-paper-surface/95 dark:bg-[#080b12]/95 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl ring-1 ring-white/10'
-                : 'w-12 h-12 flex items-center justify-center border-hairline bg-paper-surface/90 dark:bg-[#07090e]/90 shadow-[0_8px_25px_rgba(0,0,0,0.25)] backdrop-blur-xl hover:border-accent-cyan/60 hover:shadow-[0_0_20px_rgba(0,210,255,0.2)] cursor-pointer group'
-            }
-          `}
+          ref={navContainerRef}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className="fixed top-3.5 left-4 z-50 select-none font-sans"
         >
-          {/* Collapsed State Icon Trigger */}
-          {!isExpanded ? (
-            <button
-              onClick={() => setIsExpanded(true)}
-              aria-label="Open Navigation Menu"
-              className="relative flex h-full w-full items-center justify-center text-ink-muted group-hover:text-ink transition-colors"
-            >
-              <AegisTriggerIcon className="h-5 w-5 text-ink transition-transform duration-200 group-hover:scale-110" />
-              {hasAlert && (
-                <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-rose opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-rose border-2 border-paper-surface" />
-                </span>
-              )}
-            </button>
-          ) : (
-            /* Expanded Panel View */
-            <div className="w-full animate-soft-in">
-              {/* Header inside expanded panel */}
-              <div className="flex items-center justify-between px-3.5 py-3 border-b border-hairline/60 bg-paper-elevated/40">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-ink text-paper-bottom shadow-sm">
-                    <AegisTriggerIcon className="h-4 w-4 text-accent-cyan" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-display text-sm font-black tracking-tight text-ink">
-                        SENTINEL
-                      </span>
-                      <span className="font-mono text-[9px] font-bold tracking-widest text-accent-cyan uppercase">
-                        // ASCEND
+          {/* Main Morphing Container */}
+          <div
+            className={`
+              relative overflow-hidden rounded-2xl border transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+              ${
+                isExpanded
+                  ? 'w-[320px] sm:w-[340px] border-white/20 bg-[#070b14]/95 shadow-[0_25px_60px_rgba(0,0,0,0.85)] backdrop-blur-3xl ring-1 ring-white/10'
+                  : 'w-11 h-11 flex items-center justify-center border-white/20 bg-[#070b14]/90 shadow-[0_8px_25px_rgba(0,0,0,0.4)] backdrop-blur-xl hover:border-accent-cyan/70 hover:shadow-[0_0_20px_rgba(0,210,255,0.3)] cursor-pointer group'
+              }
+            `}
+          >
+            {/* Collapsed State Icon Trigger */}
+            {!isExpanded ? (
+              <button
+                onClick={() => setIsExpanded(true)}
+                aria-label="Open Navigation Menu"
+                className="relative flex h-full w-full items-center justify-center text-white/70 group-hover:text-white transition-colors"
+              >
+                <AegisTriggerIcon className="h-4.5 w-4.5 text-accent-cyan transition-transform duration-200 group-hover:scale-110" />
+                {hasAlert && (
+                  <span className="absolute top-2 right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-rose opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-rose border-2 border-[#070b14]" />
+                  </span>
+                )}
+              </button>
+            ) : (
+              /* Expanded Panel View */
+              <div className="w-full animate-soft-in">
+                {/* Header inside expanded panel */}
+                <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/10 bg-white/[0.03]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30 shadow-[0_0_12px_rgba(0,210,255,0.25)]">
+                      <AegisTriggerIcon className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-display text-sm font-black tracking-tight text-white">
+                          AEGIS
+                        </span>
+                        <span className="font-mono text-[9px] font-bold tracking-widest text-accent-cyan uppercase">
+                          // OS
+                        </span>
+                      </div>
+                      <span className="font-mono text-[9px] tracking-wider text-white/50">
+                        AUTONOMOUS INTELLIGENCE
                       </span>
                     </div>
-                    <span className="font-mono text-[9px] tracking-wider text-ink-dim">
-                      AUTONOMOUS INTELLIGENCE OS
-                    </span>
                   </div>
+
+                  {/* Theme Toggle */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTheme();
+                    }}
+                    aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 bg-white/[0.05] text-white/70 hover:text-white hover:border-white/30 hover:bg-white/10 transition-colors shadow-sm"
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="h-4 w-4 text-accent-amber" />
+                    ) : (
+                      <Moon className="h-4 w-4 text-sky-300" />
+                    )}
+                  </button>
                 </div>
 
-                <div className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-              </div>
-
-              {/* Navigation Items List */}
-              <div className="p-2.5 space-y-1">
-                <div className="flex items-center justify-between px-2 pb-1.5 text-[10px] font-mono text-ink-dim uppercase tracking-wider">
-                  <span>Navigation Controls</span>
-                  <span>v2.4</span>
-                </div>
-
-                <nav className="space-y-1">
+                {/* Navigation Items List */}
+                <div className="p-2 space-y-1.5">
                   {navItems.map((item) => {
-                    const Icon = item.icon;
                     const isActive = activeTab === item.id;
+                    const Icon = item.icon;
 
                     return (
                       <button
                         key={item.id}
                         onClick={() => handleSelectTab(item.id)}
                         className={`
-                          group relative flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-all duration-200
+                          group/btn w-full relative flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200
                           ${
                             isActive
-                              ? 'bg-ink text-paper-bottom shadow-md font-semibold ring-1 ring-accent-cyan/30'
-                              : 'text-ink-muted hover:bg-hairline/20 hover:text-ink'
+                              ? 'bg-gradient-to-r from-accent-cyan/15 via-white/[0.08] to-white/[0.02] border border-accent-cyan/40 shadow-[0_0_20px_rgba(0,210,255,0.15)] text-white'
+                              : 'border border-transparent hover:border-white/10 hover:bg-white/[0.05] text-white/60 hover:text-white'
                           }
                         `}
                       >
+                        {/* Active Indicator Bar on Left */}
+                        {isActive && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-accent-cyan shadow-[0_0_8px_#00d2ff]" />
+                        )}
+
                         <div className="flex items-center gap-3 min-w-0">
                           <div
                             className={`
-                              flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors
+                              flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all
                               ${
                                 isActive
-                                  ? 'border-accent-cyan/40 bg-accent-cyan/15 text-accent-cyan shadow-[0_0_10px_rgba(0,210,255,0.3)]'
-                                  : 'border-hairline bg-paper-elevated text-ink-dim group-hover:text-ink group-hover:border-hairlineStrong'
+                                  ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40 shadow-[0_0_10px_rgba(0,210,255,0.2)]'
+                                  : 'bg-white/[0.05] border border-white/10 text-white/50 group-hover/btn:text-white group-hover/btn:bg-white/[0.09]'
                               }
                             `}
                           >
@@ -242,111 +267,94 @@ export const Header: React.FC = () => {
 
                           <div className="flex flex-col min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-sans text-xs font-bold tracking-tight truncate">
+                              <span className={`font-mono text-[10px] font-bold ${isActive ? 'text-accent-cyan' : 'text-white/40'}`}>
+                                {item.index}
+                              </span>
+                              <span className={`font-sans text-xs font-bold truncate ${isActive ? 'text-white' : 'text-white/80 group-hover/btn:text-white'}`}>
                                 {item.label}
                               </span>
-                              {item.badge && (
-                                <span className="rounded-full bg-accent-rose text-white px-1.5 py-0.2 text-[9px] font-mono font-bold animate-pulse">
-                                  {item.badge}
-                                </span>
-                              )}
                             </div>
                             <span
-                              className={`font-mono text-[10px] truncate ${
-                                isActive ? 'text-paper-bottom/70' : 'text-ink-dim'
-                              }`}
+                              className={`
+                                font-mono text-[9px] truncate
+                                ${isActive ? 'text-accent-cyan/80' : 'text-white/45 group-hover/btn:text-white/60'}
+                              `}
                             >
                               {item.sublabel}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 pl-2">
-                          <span
-                            className={`font-mono text-[10px] ${
-                              isActive ? 'text-accent-cyan font-bold' : 'text-ink-dim/50'
-                            }`}
-                          >
-                            {item.index}
-                          </span>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                          {item.badge && (
+                            <span className="font-mono text-[9px] px-1.5 py-0.5 rounded-full bg-accent-rose text-white font-bold animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.4)]">
+                              {item.badge}
+                            </span>
+                          )}
                           <ChevronRight
-                            className={`h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 ${
-                              isActive ? 'text-accent-cyan' : 'text-ink-dim/40'
-                            }`}
+                            className={`
+                              h-3.5 w-3.5 transition-all duration-200
+                              ${
+                                isActive
+                                  ? 'text-accent-cyan translate-x-0.5 opacity-100'
+                                  : 'text-white/30 opacity-0 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5'
+                              }
+                            `}
                           />
                         </div>
                       </button>
                     );
                   })}
-                </nav>
+                </div>
 
-                {/* Footer status inside panel */}
-                <div className="mt-2 pt-2 border-t border-hairline/40 px-2 flex items-center justify-between text-[10px] font-mono text-ink-dim">
+                {/* Footer Security Badge */}
+                <div className="px-4 py-2.5 border-t border-white/10 bg-black/40 flex items-center justify-between font-mono text-[9px] text-white/50">
                   <div className="flex items-center gap-1.5">
-                    <Lock className="h-3 w-3 text-emerald-500" />
-                    <span>ZERO-KNOWLEDGE VERIFIED</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981] animate-pulse" />
+                    <span className="text-emerald-400/90 font-semibold">ZK-STARK VERIFIED</span>
                   </div>
-                  <span>HOVER OUT / ESC</span>
+                  <span>EDGE LOCAL v2.4</span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ── TOP-RIGHT FLOATING STATUS & THEME CAPSULE ── */}
-      <div className="fixed top-4 right-4 z-40 flex items-center gap-2.5 select-none font-sans">
-        {/* Profile / Login Capsule */}
-        {isAuthenticated && user ? (
+      {/* ── TOP-RIGHT FLOATING AUTH & TELEMETRY CAPSULE ── */}
+      <aside aria-label="System status" className="fixed top-3.5 right-4 z-50 flex items-center gap-2 select-none">
+        
+        {/* Interactive Authentication Profile Capsule (Shown only after login) */}
+        {isAuthenticated && user && (
           <button
             onClick={openProfileDrawer}
-            title="Open Executive Security Clearance"
-            className="hidden sm:flex items-center gap-2.5 rounded-2xl border border-hairline bg-paper-surface/85 dark:bg-[#07090e]/85 px-3.5 py-2 backdrop-blur-xl shadow-lg hover:border-accent-cyan/50 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group text-left"
+            className="group flex items-center gap-2.5 rounded-full border border-white/15 bg-[#070b14]/90 px-3.5 py-1.5 backdrop-blur-xl shadow-lg hover:border-accent-cyan/60 hover:shadow-[0_0_15px_rgba(0,210,255,0.2)] transition-all"
           >
-            <StatusBadge
-              label="CORE SECURE"
-              tone="emerald"
-              pulse={true}
-              size="sm"
-            />
-            <div className="h-3.5 w-[1px] bg-hairline" />
-            <div className="flex flex-col text-right">
-              <span className="font-sans text-xs font-bold text-ink leading-tight group-hover:text-accent-cyan transition-colors">
-                {user.name}
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-cyan text-black text-[10px] font-display font-black shadow-[0_0_8px_rgba(0,210,255,0.4)]">
+              {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </div>
+            
+            <div className="flex flex-col text-left">
+              <span className="font-sans text-xs font-bold text-white leading-tight group-hover:text-accent-cyan transition-colors">
+                {user.name.split(' ')[0]}
               </span>
-              <span className="font-mono text-[9px] text-ink-dim tracking-wider">
-                {user.accountNumber}
+              <span className="font-mono text-[8px] text-white/50 leading-none">
+                {user.tier}
               </span>
             </div>
-          </button>
-        ) : (
-          <button
-            onClick={openAuthModal}
-            className="flex items-center gap-2 rounded-2xl border border-accent-cyan/40 bg-accent-cyan/10 hover:bg-accent-cyan/20 px-3.5 py-2 font-sans text-xs font-bold text-accent-cyan backdrop-blur-xl shadow-lg transition-all"
-          >
-            <LogIn className="h-3.5 w-3.5" />
-            <span>Sign In</span>
+
+            <span className="h-1.5 w-1.5 rounded-full bg-accent-emerald shadow-[0_0_6px_#10b981]" />
           </button>
         )}
 
-        {/* Theme Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          title={
-            theme === 'dark'
-              ? 'Switch to Ascend Paper Light Theme'
-              : 'Switch to Obsidian Executive Theme'
-          }
-          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-hairline bg-paper-surface/85 dark:bg-[#07090e]/85 text-ink-muted hover:text-ink hover:border-accent-cyan/50 hover:scale-105 active:scale-95 transition-all duration-200 backdrop-blur-xl shadow-lg"
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4 text-amber-400" />
-          ) : (
-            <Moon className="h-4 w-4 text-slate-700" />
-          )}
-        </button>
-      </div>
+        {/* Global Latency Capsule */}
+        <div className="hidden md:flex items-center gap-2 rounded-full border border-white/15 bg-[#070b14]/80 px-3.5 py-1.5 font-mono text-[11px] text-white/60 backdrop-blur-md shadow-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-emerald shadow-[0_0_6px_#10b981] animate-pulse" />
+          <span className="text-white font-semibold">14ms</span>
+          <span className="opacity-40">|</span>
+          <span className="tracking-wider text-emerald-400">CORE SECURE</span>
+        </div>
+      </aside>
     </>
   );
 };
-

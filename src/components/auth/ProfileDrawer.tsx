@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useAuth, DEMO_ACCOUNTS } from '../../context/AuthContext';
+import { useAuth, DEMO_PERSONAS } from '../../context/AuthContext';
 import {
   Shield,
   User,
@@ -11,19 +11,17 @@ import {
   CreditCard,
   CheckCircle2,
   KeyRound,
-  Fingerprint,
-  Smartphone,
-  ExternalLink
+  Building
 } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
 
 export const ProfileDrawer: React.FC = () => {
-  const { user, isProfileDrawerOpen, closeProfileDrawer, logout, switchDemoAccount, openAuthModal } = useAuth();
+  const { user, isProfileDrawerOpen, closeProfileDrawer, logout, switchDemoPersona } = useAuth();
 
   if (!isProfileDrawerOpen || !user) return null;
 
-  const handleSwitchAccount = (demoUserId: string) => {
-    switchDemoAccount(demoUserId);
+  const handleSwitchPersona = async (personaKey: 'deepak' | 'priya' | 'vikram') => {
+    await switchDemoPersona(personaKey);
   };
 
   const handleLogout = () => {
@@ -37,7 +35,7 @@ export const ProfileDrawer: React.FC = () => {
       <div className="absolute inset-0" onClick={closeProfileDrawer} />
 
       {/* Modal Container */}
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-hairlineStrong bg-paper-surface/95 dark:bg-[#090c14]/95 p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl ring-1 ring-white/10 font-sans">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-hairlineStrong bg-paper-surface/95 dark:bg-[#090c14]/95 p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl ring-1 ring-white/10 font-sans max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -50,7 +48,7 @@ export const ProfileDrawer: React.FC = () => {
         {/* User Profile Header */}
         <div className="flex items-start gap-4 mb-6">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-ink text-paper-bottom shadow-lg border border-accent-cyan/30 text-xl font-display font-black">
-            {user.name.split(' ').map(n => n[0]).join('')}
+            {user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
           </div>
 
           <div className="flex flex-col min-w-0 pr-6">
@@ -79,25 +77,25 @@ export const ProfileDrawer: React.FC = () => {
           <div className="flex items-center justify-between border-b border-hairline/60 pb-2.5">
             <span className="font-mono text-[11px] text-ink-dim uppercase">Total Sovereign Balance</span>
             <span className="font-display text-lg font-bold text-ink">
-              ₹{user.balance.toLocaleString('en-IN')}
+              ₹{(user.balance || 2845000).toLocaleString('en-IN')}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs font-mono">
             <div>
-              <span className="text-ink-dim text-[10px] block">USER ID</span>
-              <span className="text-ink font-semibold">{user.userId}</span>
+              <span className="text-ink-dim text-[10px] block">EMAIL / USER ID</span>
+              <span className="text-ink font-semibold truncate block">{user.email || user.userId}</span>
             </div>
             <div>
-              <span className="text-ink-dim text-[10px] block">SECURITY CLEARANCE</span>
-              <span className="text-emerald-500 font-semibold">ACTIVE · VERIFIED</span>
+              <span className="text-ink-dim text-[10px] block">DATABASE PERSISTENCE</span>
+              <span className="text-emerald-500 font-semibold">STORED ON-DEVICE DB</span>
             </div>
             <div>
-              <span className="text-ink-dim text-[10px] block">AUTHENTICATION</span>
-              <span className="text-ink">Passkey + Biometric</span>
+              <span className="text-ink-dim text-[10px] block">ACCOUNT TYPE</span>
+              <span className="text-ink">{user.isDemoAccount ? 'Demo Account' : 'Real Sovereign'}</span>
             </div>
             <div>
-              <span className="text-ink-dim text-[10px] block">LAST TERMINAL SESSION</span>
+              <span className="text-ink-dim text-[10px] block">LAST SESSION</span>
               <span className="text-ink">{user.lastLogin}</span>
             </div>
           </div>
@@ -108,29 +106,32 @@ export const ProfileDrawer: React.FC = () => {
           <div className="flex items-center justify-between mb-2.5">
             <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-ink-dim flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-accent-cyan" />
-              Switch Active Demo Persona:
+              Switch Active Demo Account:
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {Object.entries(DEMO_ACCOUNTS).map(([key, demo]) => {
-              const u = demo.user;
-              const isCurrent = user.userId === u.userId;
+            {(['deepak', 'priya', 'vikram'] as const).map((key) => {
+              const p = DEMO_PERSONAS[key];
+              const isCurrent = user.userId === p.user.userId;
+
               return (
                 <button
                   key={key}
-                  onClick={() => handleSwitchAccount(key)}
+                  onClick={() => handleSwitchPersona(key)}
                   className={`flex flex-col p-2.5 rounded-xl border text-left transition-all ${
                     isCurrent
                       ? 'border-accent-cyan/60 bg-accent-cyan/10 ring-1 ring-accent-cyan/30'
                       : 'border-hairline bg-paper-surface/60 hover:bg-paper-elevated hover:border-hairlineStrong'
                   }`}
                 >
-                  <span className="font-sans text-xs font-bold text-ink truncate">
-                    {u.name}
-                  </span>
-                  <span className="font-mono text-[9px] text-ink-dim truncate mt-0.5">
-                    {u.tier}
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="font-sans text-xs font-bold text-ink truncate">
+                      {p.name.split(' ')[0]}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] text-ink-dim truncate">
+                    {p.role.split(' ')[0]}
                   </span>
                 </button>
               );

@@ -2,60 +2,112 @@ import React from 'react';
 import { useIntelligence } from '../../context/IntelligenceContext';
 import { DEMO_SCENARIOS } from '../../data/mockScenarios';
 import { ScenarioId } from '../../types';
-import { Play, Sparkles, ShieldCheck, AlertTriangle, TrendingDown } from 'lucide-react';
+import { Sparkles, ShieldCheck, AlertTriangle, TrendingDown, CheckCircle2 } from 'lucide-react';
 
 export const ScenarioBar: React.FC = () => {
-  const { currentScenarioId, switchScenario } = useIntelligence();
+  const { currentScenarioId, switchScenario, activeTab } = useIntelligence();
 
-  const scenarios: { id: ScenarioId; label: string; icon: React.ReactNode; color: string }[] = [
-    {
-      id: 'legitimate_vendor',
-      label: '1. Legitimate Transfer (₹18.5k)',
-      icon: <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />,
-      color: 'border-emerald-500/30 text-emerald-400'
-    },
-    {
-      id: 'digital_arrest',
-      label: '2. "Digital Arrest" Coercion (₹2.4L)',
-      icon: <AlertTriangle className="h-3.5 w-3.5 text-rose-400" />,
-      color: 'border-rose-500/30 text-rose-400'
-    },
-    {
-      id: 'fake_kyc',
-      label: '3. Fake KYC Phish (₹45k)',
-      icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />,
-      color: 'border-amber-500/30 text-amber-400'
-    },
-    {
-      id: 'financial_distress',
-      label: '4. Impending Distress Alert',
-      icon: <TrendingDown className="h-3.5 w-3.5 text-amber-400" />,
-      color: 'border-amber-500/30 text-amber-400'
+  // If on homepage/command center, do not render scenario bar
+  if (activeTab === 'command') return null;
+
+  // Filter scenarios based on the active feature
+  const getFeatureScenarios = () => {
+    if (activeTab === 'fraud') {
+      return {
+        featureName: 'Fraud Intelligence Scenarios',
+        list: [
+          {
+            id: 'legitimate_vendor' as ScenarioId,
+            label: '1. Legitimate Transfer (₹18.5k)',
+            icon: <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />,
+          },
+          {
+            id: 'digital_arrest' as ScenarioId,
+            label: '2. "Digital Arrest" Coercion (₹2.4L)',
+            icon: <AlertTriangle className="h-3.5 w-3.5 text-rose-400" />,
+          },
+          {
+            id: 'fake_kyc' as ScenarioId,
+            label: '3. Fake KYC Phish (₹45k)',
+            icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />,
+          },
+        ]
+      };
     }
-  ];
+
+    if (activeTab === 'health') {
+      return {
+        featureName: 'Financial Health Scenarios',
+        list: [
+          {
+            id: 'financial_distress' as ScenarioId,
+            label: '1. Impending Distress Alert (1.56 Mo)',
+            icon: <TrendingDown className="h-3.5 w-3.5 text-rose-400" />,
+          },
+          {
+            id: 'legitimate_vendor' as ScenarioId,
+            label: '2. Healthy Solvency Baseline (6.2 Mo)',
+            icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />,
+          },
+        ]
+      };
+    }
+
+    // For AI Center and History: show all scenarios to inspect audit transcripts
+    return {
+      featureName: 'Simulated Scenario Telemetry',
+      list: [
+        {
+          id: 'legitimate_vendor' as ScenarioId,
+          label: '1. Legitimate (₹18.5k)',
+          icon: <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />,
+        },
+        {
+          id: 'digital_arrest' as ScenarioId,
+          label: '2. Digital Arrest (₹2.4L)',
+          icon: <AlertTriangle className="h-3.5 w-3.5 text-rose-400" />,
+        },
+        {
+          id: 'fake_kyc' as ScenarioId,
+          label: '3. Fake KYC (₹45k)',
+          icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />,
+        },
+        {
+          id: 'financial_distress' as ScenarioId,
+          label: '4. Runway Distress (1.56 Mo)',
+          icon: <TrendingDown className="h-3.5 w-3.5 text-amber-400" />,
+        },
+      ]
+    };
+  };
+
+  const featureScenarios = getFeatureScenarios();
 
   const handleSelectScenario = (id: ScenarioId) => {
     switchScenario(id);
   };
 
   return (
-    <aside aria-label="Demo Scenario Switcher" className="w-full border-b border-hairline/70 bg-paper-surface/40 backdrop-blur-sm px-4 sm:px-6 lg:px-8 pt-20 pb-3 transition-colors duration-300">
+    <aside
+      aria-label="Feature Scenario Switcher"
+      className="w-full border-b border-hairline/70 bg-paper-surface/40 backdrop-blur-sm pr-4 sm:pr-6 lg:pr-8 pl-16 sm:pl-20 py-2.5 transition-all duration-300 select-none"
+    >
       <div className="w-full flex flex-wrap items-center justify-between gap-3 text-xs">
         
-        {/* Left: Label + Scenario Buttons Grouped Together on the Left */}
+        {/* Left: Label + Feature Specific Scenario Buttons */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2 shrink-0">
             <span className="flex h-5 w-5 items-center justify-center rounded bg-accent-cyan/15 text-accent-cyan">
               <Sparkles className="h-3 w-3" />
             </span>
             <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-              Interactive Demo Scenarios:
+              {featureScenarios.featureName}:
             </span>
           </div>
 
-          {/* Scenario Buttons directly attached on the Left */}
+          {/* Scenario Buttons */}
           <div className="flex flex-wrap items-center gap-1.5">
-            {scenarios.map((sc) => {
+            {featureScenarios.list.map((sc) => {
               const isSelected = currentScenarioId === sc.id;
               return (
                 <button
@@ -78,9 +130,9 @@ export const ScenarioBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Quick Run Telemetry Cue */}
+        {/* Right: Telemetry Guidance */}
         <div className="hidden xl:flex items-center gap-1.5 font-mono text-[10px] text-ink-dim">
-          <span>SELECT SCENARIO TO AUTO-CONFIGURE INTELLIGENCE ENGINE</span>
+          <span>INSTANTLY RE-RUNS NEURAL CHECKS & REASONING TOKENS</span>
         </div>
       </div>
     </aside>
