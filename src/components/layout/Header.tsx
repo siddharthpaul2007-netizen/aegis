@@ -1,7 +1,7 @@
 import React from 'react';
 import { useIntelligence } from '../../context/IntelligenceContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Shield, Activity, TrendingUp, Cpu, History, Sun, Moon } from 'lucide-react';
+import { Shield, Home, TrendingUp, Cpu, History, Sun, Moon } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
 
 interface NavItem {
@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
   const navItems: NavItem[] = [
-    { id: 'command', label: 'Command Center', icon: Activity },
+    { id: 'command', label: 'Home', icon: Home },
     { id: 'fraud', label: 'Fraud Intelligence', icon: Shield, badge: currentScenarioId !== 'legitimate_vendor' ? '1 Alert' : undefined },
     { id: 'health', label: 'Financial Health', icon: TrendingUp },
     { id: 'ai-center', label: 'AI Intelligence Center', icon: Cpu },
