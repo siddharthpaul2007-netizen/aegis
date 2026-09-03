@@ -1,27 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useIntelligence } from '../../context/IntelligenceContext';
 import { HairlineCard } from '../common/HairlineCard';
 import { PillButton } from '../common/PillButton';
 import { StatusBadge } from '../common/StatusBadge';
-import { MessageSquare, Send, Shield, Sparkles, User, AlertCircle } from 'lucide-react';
+import { MessageSquare, Send, Shield, Sparkles, User, AlertCircle, Loader2 } from 'lucide-react';
 
 export const ContextInterview: React.FC = () => {
-  const { simulationState, submitInterviewResponse, currentScenario } = useIntelligence();
-  const { dialogueMessages, interviewCompleted, isAnalyzing } = simulationState;
+  const { simulationState, submitInterviewResponse } = useIntelligence();
+  const { dialogueMessages, interviewCompleted, isAnalyzing, isInterviewThinking } = simulationState;
   const [inputText, setInputText] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const lastMessage = dialogueMessages[dialogueMessages.length - 1];
+  // Auto-scroll chatbox to bottom when messages update
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [dialogueMessages.length, isInterviewThinking]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isAnalyzing || isInterviewThinking) return;
     submitInterviewResponse(inputText);
     setInputText('');
   };
 
   const handleSelectQuickOption = (option: string) => {
+    if (isAnalyzing || isInterviewThinking) return;
     submitInterviewResponse(option);
   };
+
+  // Ensure dialogue stream contains only unique messages
+  const uniqueMessages = React.useMemo(() => {
+    const seen = new Set<string>();
+    return dialogueMessages.filter(msg => {
+      const key = `${msg.sender}-${msg.text}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [dialogueMessages]);
 
   return (
     <HairlineCard className="space-y-5">
@@ -39,24 +60,31 @@ export const ContextInterview: React.FC = () => {
         </div>
 
         <StatusBadge
-          label={interviewCompleted ? 'CONTEXT REASONED' : 'INTERVIEW ACTIVE'}
-          tone={interviewCompleted ? 'emerald' : 'cyan'}
-          pulse={!interviewCompleted}
+          label={
+            interviewCompleted
+              ? 'CONTEXT REASONED'
+              : isInterviewThinking
+              ? 'REASONING…'
+              : 'INTERVIEW ACTIVE'
+          }
+          tone={interviewCompleted ? 'emerald' : isInterviewThinking ? 'amber' : 'cyan'}
+          pulse={!interviewCompleted || isInterviewThinking}
           size="sm"
         />
       </div>
 
       {/* Dialogue Stream */}
-      <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
-        {dialogueMessages.map((msg) => {
+      <div ref={scrollContainerRef} className="space-y-4 max-h-[420px] overflow-y-auto pr-1 scroll-smooth">
+        {uniqueMessages.map((msg, index) => {
           const isSentinel = msg.sender === 'sentinel';
           const isCritical = msg.urgencyLevel === 'critical';
           const isCaution = msg.urgencyLevel === 'caution';
+          const isLastMessage = index === uniqueMessages.length - 1;
 
           return (
             <div
-              key={msg.id}
-              className={`flex items-start gap-3 ${isSentinel ? '' : 'flex-row-reverse'}`}
+              key={msg.id || index}
+              className={`flex items-start gap-3 ${isSentinel ? '' : 'flex-row-reverse'} animate-soft-in`}
             >
               {/* Avatar */}
               <div
@@ -107,18 +135,19 @@ export const ContextInterview: React.FC = () => {
                   </div>
                 )}
 
-                {/* Pre-built quick options if provided */}
-                {msg.options && !interviewCompleted && (
+                {/* Pre-built quick options on the latest message */}
+                {msg.options && isLastMessage && !isInterviewThinking && msg.options.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-hairline/60 space-y-2">
                     <span className="block font-mono text-[11px] text-ink-dim uppercase">
-                      Quick Responses (Scenario Simulation):
+                      Suggested Responses & Follow-ups:
                     </span>
                     <div className="flex flex-col gap-2">
                       {msg.options.map((opt, optIdx) => (
                         <button
                           key={optIdx}
+                          disabled={isAnalyzing || isInterviewThinking}
                           onClick={() => handleSelectQuickOption(opt)}
-                          className="text-left rounded-lg border border-hairline bg-paper-surface hover:bg-hairline/15 p-2.5 font-sans text-xs text-ink transition-all hover:border-accent-cyan/50"
+                          className="text-left rounded-lg border border-hairline bg-paper-surface hover:bg-hairline/15 p-2.5 font-sans text-xs text-ink transition-all hover:border-accent-cyan/50 disabled:opacity-50 disabled:pointer-events-none"
                         >
                           "{opt}"
                         </button>
@@ -130,6 +159,21 @@ export const ContextInterview: React.FC = () => {
             </div>
           );
         })}
+
+        {/* AI Cognitive Reasoning in-progress indicator */}
+        {isInterviewThinking && (
+          <div className="flex items-start gap-3 animate-soft-in">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-accent-cyan/40 bg-accent-cyan/10 text-accent-cyan font-mono text-xs">
+              <Shield className="h-4 w-4 animate-pulse" />
+            </div>
+            <div className="rounded-2xl border border-accent-cyan/30 bg-paper-elevated p-3.5 text-xs text-ink flex items-center gap-2.5">
+              <Loader2 className="h-4 w-4 animate-spin text-accent-cyan shrink-0" />
+              <span className="font-mono text-ink-dim">
+                Sentinel Cognitive Engine is evaluating linguistic markers & intent…
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input Field */}
@@ -138,14 +182,18 @@ export const ContextInterview: React.FC = () => {
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          disabled={isAnalyzing}
-          placeholder="Explain the context or who requested this transfer..."
-          className="flex-1 rounded-lg border border-hairline bg-paper-elevated px-3.5 py-2 font-sans text-sm text-ink placeholder:text-ink-dim focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan"
+          disabled={isAnalyzing || isInterviewThinking}
+          placeholder={
+            isInterviewThinking
+              ? 'Analyzing context response…'
+              : 'Explain the context or who requested this transfer...'
+          }
+          className="flex-1 rounded-lg border border-hairline bg-paper-elevated px-3.5 py-2 font-sans text-sm text-ink placeholder:text-ink-dim focus:border-accent-cyan focus:outline-none focus:ring-1 focus:ring-accent-cyan disabled:opacity-50"
         />
         <PillButton
           variant="primary"
           size="md"
-          disabled={!inputText.trim() || isAnalyzing}
+          disabled={!inputText.trim() || isAnalyzing || isInterviewThinking}
           icon={<Send className="h-3.5 w-3.5" />}
         >
           Send
