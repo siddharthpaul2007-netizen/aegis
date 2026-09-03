@@ -24,62 +24,69 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-hairline bg-paper-surface/85 backdrop-blur-md transition-colors duration-300">
+    <header className="sticky top-0 z-40 w-full border-b border-hairline bg-paper-surface/90 backdrop-blur-xl transition-colors duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: Wordmark */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('command')}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-paper-bottom shadow-sm">
-            <Shield className="h-5 w-5 text-accent-cyan" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="font-display text-lg font-extrabold tracking-tight text-ink">
-                SENTINEL
-              </span>
-              <span className="font-mono text-[11px] font-medium tracking-widest text-ink-dim uppercase">
-                // ASCEND
+        
+        {/* Left Section: Wordmark + Left-Aligned Desktop Navigation */}
+        <div className="flex items-center gap-6 lg:gap-8">
+          {/* Brand Logo & Wordmark */}
+          <div
+            className="flex items-center gap-3 cursor-pointer group select-none"
+            onClick={() => setActiveTab('command')}
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-paper-bottom shadow-sm group-hover:scale-105 transition-transform duration-200">
+              <Shield className="h-5 w-5 text-accent-cyan" />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-display text-base sm:text-lg font-extrabold tracking-tight text-ink">
+                  SENTINEL
+                </span>
+                <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-widest text-ink-dim uppercase">
+                  // ASCEND
+                </span>
+              </div>
+              <span className="font-mono text-[9px] text-ink-dim tracking-wider hidden sm:block">
+                AUTONOMOUS BANKING INTELLIGENCE
               </span>
             </div>
-            <span className="font-mono text-[10px] text-ink-dim tracking-wider">
-              AUTONOMOUS BANKING INTELLIGENCE
-            </span>
           </div>
+
+          {/* Left-Aligned Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 rounded-full border border-hairline bg-paper-elevated/80 p-1 shadow-sm backdrop-blur-md">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`
+                    relative flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium font-sans
+                    transition-all duration-200 ease-out
+                    ${
+                      isActive
+                        ? 'bg-ink text-paper-bottom shadow-sm font-semibold ring-1 ring-accent-cyan/30'
+                        : 'text-ink-muted hover:text-ink hover:bg-hairline/25'
+                    }
+                  `}
+                >
+                  <Icon className={`h-3.5 w-3.5 transition-colors ${isActive ? 'text-accent-cyan' : 'text-ink-dim'}`} />
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-1 rounded-full bg-accent-rose text-white px-1.5 py-0.2 text-[9px] font-mono animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Center: Desktop Navigation Tabs */}
-        <nav className="hidden lg:flex items-center gap-1 rounded-full border border-hairline bg-paper-elevated p-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`
-                  relative flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium font-sans
-                  transition-all duration-200 ease-out
-                  ${
-                    isActive
-                      ? 'bg-ink text-paper-bottom shadow-sm font-semibold'
-                      : 'text-ink-muted hover:text-ink hover:bg-hairline/20'
-                  }
-                `}
-              >
-                <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-accent-cyan' : 'text-ink-dim'}`} />
-                <span>{item.label}</span>
-                {item.badge && (
-                  <span className="ml-1 rounded-full bg-accent-rose text-white px-1.5 py-0.2 text-[9px] font-mono">
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Right: Telemetry & Theme Switcher */}
+        {/* Right Section: Telemetry, Account Status & Theme Switcher */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2.5">
             <StatusBadge
               label="CORE SECURE"
               tone="emerald"
@@ -97,11 +104,11 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Theme Toggle (Obsidian vs Ascend Paper) */}
+          {/* Theme Toggle (Obsidian Dark vs Ascend Paper Light) */}
           <button
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to Ascend Paper Light Theme' : 'Switch to Obsidian Executive Theme'}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-paper-elevated text-ink-muted hover:text-ink hover:border-hairlineStrong transition-colors duration-200"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline bg-paper-elevated text-ink-muted hover:text-ink hover:border-hairlineStrong hover:scale-105 transition-all duration-200 shadow-sm"
           >
             {theme === 'dark' ? (
               <Sun className="h-4 w-4 text-amber-400" />
@@ -113,7 +120,7 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Mobile Nav Bar */}
-      <div className="flex lg:hidden overflow-x-auto border-t border-hairline/50 px-2 py-1.5 scrollbar-none bg-paper-surface">
+      <div className="flex md:hidden overflow-x-auto border-t border-hairline/50 px-3 py-2 scrollbar-none bg-paper-surface/95 backdrop-blur-md">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -122,18 +129,18 @@ export const Header: React.FC = () => {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`
-                flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium mr-1
+                flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium mr-1.5 transition-all
                 ${
                   isActive
-                    ? 'bg-ink text-paper-bottom font-semibold'
-                    : 'text-ink-muted hover:text-ink'
+                    ? 'bg-ink text-paper-bottom font-semibold shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-hairline/20'
                 }
               `}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-accent-cyan' : 'text-ink-dim'}`} />
               <span>{item.label}</span>
               {item.badge && (
-                <span className="rounded-full bg-accent-rose text-white px-1 py-0.1 text-[9px] font-mono">
+                <span className="rounded-full bg-accent-rose text-white px-1.5 py-0.2 text-[9px] font-mono">
                   {item.badge}
                 </span>
               )}
