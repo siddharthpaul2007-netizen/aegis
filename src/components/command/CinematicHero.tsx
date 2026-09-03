@@ -651,119 +651,245 @@ export const CinematicHero: React.FC = () => {
           </div>
         </div>
 
-        {/* ── LAYER 2: PLATFORM CAPABILITIES (Buttery-smooth continuous emergence) ── */}
+        {/* ── LAYER 2: PLATFORM CAPABILITIES (High-tech interactive command deck) ── */}
         <div
-          className="absolute inset-0 z-20 flex flex-col justify-center items-center px-6 sm:px-10 lg:px-16 py-8 max-w-6xl mx-auto w-full transition-all duration-200 ease-out"
+          className="absolute inset-0 z-20 flex flex-col justify-center items-center px-4 sm:px-8 lg:px-12 py-6 max-w-7xl mx-auto w-full transition-all duration-200 ease-out"
           style={{
             opacity: emergeProgress,
             transform: `scale(${emergeScale}) translateY(${emergeTranslateY}px)`,
             pointerEvents: isCapabilitiesInteractive ? 'auto' : 'none',
           }}
         >
-          {/* Header Bar */}
-          <div className="w-full flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/15 pb-4 mb-6">
+          {/* Header Bar & Orbit Return */}
+          <div className="w-full flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/15 pb-3.5 mb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="inline-block h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" />
-                <span className="font-mono text-xs uppercase tracking-widest text-white/60">
-                  // PLATFORM CAPABILITIES · EMERGED
+                <span className="inline-block h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse" />
+                <span className="font-mono text-[11px] uppercase tracking-widest text-sky-400 font-bold">
+                  // SOVEREIGN DEFENSE CAPABILITIES · LIVE RADAR ACTIVE
                 </span>
               </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-light tracking-tight text-white mt-1">
-                Engineered for <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-sky-400">Total Capital Sovereignty.</span>
+              <h2 className="font-display text-xl sm:text-2xl lg:text-3xl font-light tracking-tight text-white mt-1">
+                Engineered for <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-sky-400">Total Capital Sovereignty.</span>
               </h2>
             </div>
             
-            <button
-              onClick={scrollToHero}
-              className="inline-flex items-center gap-1.5 font-mono text-xs text-white/60 hover:text-white transition-colors self-start sm:self-auto"
-            >
-              <ArrowUp className="h-3.5 w-3.5" />
-              <span>Reverse into Orbit</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="hidden md:inline-flex items-center gap-1.5 font-mono text-[10px] text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+                AUTONOMOUS ENGINE ONLINE
+              </span>
+              <button
+                onClick={scrollToHero}
+                className="inline-flex items-center gap-1.5 font-mono text-xs text-white/60 hover:text-white transition-colors self-start sm:self-auto bg-white/[0.05] border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/10"
+              >
+                <ArrowUp className="h-3.5 w-3.5" />
+                <span>Orbit View</span>
+              </button>
+            </div>
           </div>
 
-          {/* 3 Interactive Capability Cards with 3D Mouse Tilt */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-            {pillars.map((item, i) => {
-              const Icon = item.icon;
-              const tilt = cardTilts[i];
-              const rotateX = -tilt.y * 7;
-              const rotateY = tilt.x * 7;
-
-              return (
-                <div
-                  key={i}
-                  onMouseMove={(e) => handleCardMouseMove(i, e)}
-                  onMouseLeave={() => handleCardMouseLeave(i)}
-                  onClick={() => setActiveTab(item.tab)}
-                  style={{
-                    transform: tilt.hovered
-                      ? `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px) scale(1.01)`
-                      : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
-                    transition: tilt.hovered
-                      ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
-                      : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
-                  }}
-                  className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/15 bg-black/60 p-6 sm:p-7 backdrop-blur-2xl shadow-xl cursor-pointer ${item.borderHover}`}
-                >
-                  {/* Subtle Dynamic Cursor Glow Flare */}
-                  <div
-                    className="pointer-events-none absolute inset-0 transition-opacity duration-300"
-                    style={{
-                      background: tilt.hovered
-                        ? `radial-gradient(350px circle at ${tilt.px}px ${tilt.py}px, ${item.glowColor}, transparent 70%)`
-                        : 'transparent',
-                    }}
-                  />
-
-                  <div className="relative z-10 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.06] text-white group-hover:scale-105 transition-transform">
-                        <Icon className={`h-5 w-5 ${item.color}`} />
-                      </div>
-                      <span className="font-mono text-[10px] font-semibold tracking-wider text-white/50 uppercase">
-                        {item.tag}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-display text-lg font-bold text-white">
-                        {item.title}
-                      </h3>
-                      <p className="font-sans text-xs sm:text-sm text-white/70 leading-relaxed mt-2 font-light">
-                        {item.description}
-                      </p>
-                    </div>
+          {/* 3 Rich Interactive Capability Cards with Live Interactive Previews */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+            
+            {/* ── CARD 1: FRAUD INTELLIGENCE ── */}
+            <div
+              onMouseMove={(e) => handleCardMouseMove(0, e)}
+              onMouseLeave={() => handleCardMouseLeave(0)}
+              onClick={() => setActiveTab('fraud')}
+              style={{
+                transform: cardTilts[0].hovered
+                  ? `perspective(800px) rotateX(${-cardTilts[0].y * 6}deg) rotateY(${cardTilts[0].x * 6}deg) translateY(-4px) scale(1.01)`
+                  : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
+                transition: cardTilts[0].hovered
+                  ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
+                  : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
+              }}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-500/20 bg-black/70 p-5 sm:p-6 backdrop-blur-2xl shadow-xl hover:border-rose-500/50 cursor-pointer transition-all"
+            >
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-400 group-hover:scale-110 transition-transform">
+                    <Shield className="h-5 w-5" />
                   </div>
+                  <span className="font-mono text-[10px] font-bold tracking-wider text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full uppercase">
+                    REAL-TIME INTERCEPT
+                  </span>
+                </div>
 
-                  <div className="relative z-10 mt-6 pt-4 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
-                    <span>{item.actionLabel}</span>
-                    <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <div>
+                  <h3 className="font-display text-lg font-bold text-white group-hover:text-rose-300 transition-colors">
+                    Fraud Intelligence
+                  </h3>
+                  <p className="font-sans text-xs text-white/70 leading-relaxed mt-1 font-light">
+                    Intercepts coercive Digital Arrest syndicates, mule networks, and fake KYC phishing gateways in real time.
+                  </p>
+                </div>
+
+                {/* Embedded Mini Interactive Telemetry Widget */}
+                <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-3 space-y-2 font-mono text-[11px]">
+                  <div className="flex items-center justify-between text-rose-300 font-bold">
+                    <span>LIVE RISK ENGINE</span>
+                    <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 text-[10px]">96 / 100 CRITICAL</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-rose-500 h-full rounded-full w-[96%] animate-pulse" />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-white/60 pt-0.5">
+                    <span>Mule Account Flag</span>
+                    <span className="text-rose-400">12 min old</span>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+
+              <div className="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-rose-400 transition-colors">
+                <span>Launch Fraud Simulator</span>
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+            </div>
+
+            {/* ── CARD 2: FINANCIAL HEALTH & RESILIENCE ── */}
+            <div
+              onMouseMove={(e) => handleCardMouseMove(1, e)}
+              onMouseLeave={() => handleCardMouseLeave(1)}
+              onClick={() => setActiveTab('health')}
+              style={{
+                transform: cardTilts[1].hovered
+                  ? `perspective(800px) rotateX(${-cardTilts[1].y * 6}deg) rotateY(${cardTilts[1].x * 6}deg) translateY(-4px) scale(1.01)`
+                  : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
+                transition: cardTilts[1].hovered
+                  ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
+                  : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
+              }}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/20 bg-black/70 p-5 sm:p-6 backdrop-blur-2xl shadow-xl hover:border-emerald-500/50 cursor-pointer transition-all"
+            >
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
+                    <TrendingUp className="h-5 w-5" />
+                  </div>
+                  <span className="font-mono text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase">
+                    RESILIENCE MATRIX
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-display text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    Financial Health
+                  </h3>
+                  <p className="font-sans text-xs text-white/70 leading-relaxed mt-1 font-light">
+                    Predictive cashflow stress testing, emergency runway velocity, and dynamic discretionary buffer insulation.
+                  </p>
+                </div>
+
+                {/* Embedded Mini Interactive Runway Chart Widget */}
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2 font-mono text-[11px]">
+                  <div className="flex items-center justify-between text-emerald-300 font-bold">
+                    <span>RUNWAY TRAJECTORY</span>
+                    <span className="text-emerald-400 text-[10px]">81/100 RESILIENT</span>
+                  </div>
+                  {/* Mini SVG Sparkline */}
+                  <div className="h-7 w-full flex items-end">
+                    <svg viewBox="0 0 100 25" className="w-full h-full overflow-visible" fill="none">
+                      <path
+                        d="M0 20 Q 25 15, 50 18 T 75 8 T 100 5"
+                        stroke="#34d399"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <circle cx="100" cy="5" r="3" fill="#34d399" className="animate-ping opacity-75" />
+                      <circle cx="100" cy="5" r="2.5" fill="#34d399" />
+                    </svg>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-white/60 pt-0.5">
+                    <span>Safe Runway</span>
+                    <span className="text-emerald-400 font-bold">3.4 Months</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                <span>Explore Health Matrix</span>
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+            </div>
+
+            {/* ── CARD 3: AI GOVERNANCE & ZERO-KNOWLEDGE ── */}
+            <div
+              onMouseMove={(e) => handleCardMouseMove(2, e)}
+              onMouseLeave={() => handleCardMouseLeave(2)}
+              onClick={() => setActiveTab('ai-center')}
+              style={{
+                transform: cardTilts[2].hovered
+                  ? `perspective(800px) rotateX(${-cardTilts[2].y * 6}deg) rotateY(${cardTilts[2].x * 6}deg) translateY(-4px) scale(1.01)`
+                  : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
+                transition: cardTilts[2].hovered
+                  ? 'transform 0.1s ease-out, box-shadow 0.2s ease-out'
+                  : 'transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.5s ease-out',
+              }}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-sky-500/20 bg-black/70 p-5 sm:p-6 backdrop-blur-2xl shadow-xl hover:border-sky-500/50 cursor-pointer transition-all"
+            >
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-500/30 bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
+                    <Cpu className="h-5 w-5" />
+                  </div>
+                  <span className="font-mono text-[10px] font-bold tracking-wider text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-full uppercase">
+                    ZERO-KNOWLEDGE
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-display text-lg font-bold text-white group-hover:text-sky-300 transition-colors">
+                    AI Governance & Audit
+                  </h3>
+                  <p className="font-sans text-xs text-white/70 leading-relaxed mt-1 font-light">
+                    Explainable neural decisioning with immutable cryptographic tamper-proof ledger. Zero PII leaves device.
+                  </p>
+                </div>
+
+                {/* Embedded Mini Cryptographic Verification Hash Widget */}
+                <div className="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-3 space-y-2 font-mono text-[11px]">
+                  <div className="flex items-center justify-between text-sky-300 font-bold">
+                    <span>ZK-PROOF LEDGER</span>
+                    <span className="text-sky-400 text-[10px]">VERIFIED ✓</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-black/50 border border-sky-500/20 text-[10px] text-sky-200 truncate font-mono">
+                    SHA-256: 0x9f4e28...b71c0a
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-white/60 pt-0.5">
+                    <span>Inference Location</span>
+                    <span className="text-sky-400">On-Device Edge</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-10 mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
+                <span>Inspect Neural Pipeline</span>
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </div>
+            </div>
+
           </div>
 
           {/* Minimalist HUD Telemetry Bar embedded in Platform Capabilities */}
-          <div className="w-full mt-8 border-t border-white/10 pt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left">
-              <div>
-                <div className="font-display text-xl sm:text-2xl font-light text-white tracking-tight">14<span className="text-xs font-mono text-white/40 ml-0.5">ms</span></div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-white/50">Neural Intercept Latency</div>
+          <div className="w-full mt-5 border-t border-white/10 pt-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
+                <div className="font-display text-lg sm:text-xl font-light text-white tracking-tight">14<span className="text-xs font-mono text-white/40 ml-0.5">ms</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Neural Intercept Latency</div>
               </div>
-              <div>
-                <div className="font-display text-xl sm:text-2xl font-light text-emerald-400 tracking-tight">₹4.8<span className="text-xs font-mono text-emerald-400/60 ml-0.5">Cr+</span></div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-white/50">Simulated Fraud Deflected</div>
+              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
+                <div className="font-display text-lg sm:text-xl font-light text-emerald-400 tracking-tight">₹4.8<span className="text-xs font-mono text-emerald-400/60 ml-0.5">Cr+</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Simulated Fraud Deflected</div>
               </div>
-              <div>
-                <div className="font-display text-xl sm:text-2xl font-light text-sky-400 tracking-tight">0<span className="text-xs font-mono text-sky-400/60 ml-0.5">% PII</span></div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-white/50">Zero-Knowledge On-Device</div>
+              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
+                <div className="font-display text-lg sm:text-xl font-light text-sky-400 tracking-tight">0<span className="text-xs font-mono text-sky-400/60 ml-0.5">% PII</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Zero-Knowledge On-Device</div>
               </div>
-              <div>
-                <div className="font-display text-xl sm:text-2xl font-light text-white tracking-tight">100<span className="text-xs font-mono text-white/40 ml-0.5">%</span></div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-white/50">Sovereign Human Control</div>
+              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-2.5">
+                <div className="font-display text-lg sm:text-xl font-light text-white tracking-tight">100<span className="text-xs font-mono text-white/40 ml-0.5">%</span></div>
+                <div className="font-mono text-[9px] uppercase tracking-wider text-white/50">Sovereign Human Control</div>
               </div>
             </div>
           </div>

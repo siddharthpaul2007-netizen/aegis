@@ -4,6 +4,8 @@ import { Header } from './components/layout/Header';
 import { ScenarioBar } from './components/layout/ScenarioBar';
 import { CornerCaptions } from './components/layout/CornerCaptions';
 import { CustomCursor } from './components/layout/CustomCursor';
+import { AuthModal } from './components/auth/AuthModal';
+import { ProfileDrawer } from './components/auth/ProfileDrawer';
 
 // Command Center components
 import { CinematicHero } from './components/command/CinematicHero';
@@ -41,6 +43,10 @@ export const AppContent: React.FC = () => {
     <div className="relative min-h-screen bg-paper-bottom text-ink selection:bg-accent-cyan/20 selection:text-ink pb-16">
       {/* Interactive Luxury Custom Cursor */}
       <CustomCursor />
+
+      {/* Authentication Gateway & Profile Modals */}
+      <AuthModal />
+      <ProfileDrawer />
 
       {/* Ascend Grain and Radial Ambient Backdrop */}
       <div className="pointer-events-none fixed inset-0 z-0 ascend-grain" />
