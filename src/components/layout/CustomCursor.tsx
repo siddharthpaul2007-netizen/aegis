@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 export const CustomCursor: React.FC = () => {
   const dotRef = useRef<HTMLDivElement | null>(null);
@@ -41,10 +42,13 @@ export const CustomCursor: React.FC = () => {
           target.closest('input') ||
           target.closest('select') ||
           target.closest('textarea') ||
+          target.closest('label') ||
           target.closest('[role="button"]') ||
           target.closest('.cursor-pointer') ||
           target.tagName === 'BUTTON' ||
-          target.tagName === 'A'
+          target.tagName === 'A' ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'LABEL'
         );
         setIsHovered(isInteractive);
       }
@@ -91,17 +95,17 @@ export const CustomCursor: React.FC = () => {
     };
   }, [isVisible]);
 
-  if (isTouchDevice) return null;
+  if (isTouchDevice || typeof document === 'undefined') return null;
 
-  return (
-    <>
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[999999] overflow-hidden">
       {/* ── Outer Concentric Ring (Matches reference image) ── */}
       <div
         ref={ringRef}
         style={{
           transition: 'width 0.2s ease-out, height 0.2s ease-out, border-color 0.2s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out, opacity 0.15s ease-out',
         }}
-        className={`pointer-events-none fixed top-0 left-0 z-[9999] rounded-full will-change-transform ${
+        className={`pointer-events-none fixed top-0 left-0 rounded-full will-change-transform ${
           isVisible ? 'opacity-100' : 'opacity-0'
         } ${
           isHovered
@@ -118,7 +122,7 @@ export const CustomCursor: React.FC = () => {
         style={{
           transition: 'opacity 0.15s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out',
         }}
-        className={`pointer-events-none fixed top-0 left-0 z-[9999] rounded-full will-change-transform ${
+        className={`pointer-events-none fixed top-0 left-0 rounded-full will-change-transform ${
           isVisible ? 'opacity-100' : 'opacity-0'
         } ${
           isHovered
@@ -126,6 +130,7 @@ export const CustomCursor: React.FC = () => {
             : 'h-2 w-2 bg-white shadow-[0_0_6px_rgba(255,255,255,0.95)]'
         }`}
       />
-    </>
+    </div>,
+    document.body
   );
 };

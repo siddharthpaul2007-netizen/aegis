@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useIntelligence } from '../../context/IntelligenceContext';
 import { HairlineCard } from '../common/HairlineCard';
 import { PillButton } from '../common/PillButton';
@@ -11,6 +12,17 @@ export const FrictionDecision: React.FC = () => {
   const [isOverrideModalOpen, setIsOverrideModalOpen]   = useState(false);
   const [overrideCountdown, setOverrideCountdown]       = useState(5);
   const [acknowledgedRisk, setAcknowledgedRisk]         = useState(false);
+
+  // Prevent background scrolling while modal is open
+  useEffect(() => {
+    if (isOverrideModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOverrideModalOpen]);
 
   // Use engine-computed riskTier on activeTransaction
   const isLowRisk = activeTransaction.riskTier === 'low';
@@ -177,10 +189,10 @@ export const FrictionDecision: React.FC = () => {
         </div>
       )}
 
-      {/* Override Confirmation Modal */}
-      {isOverrideModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="max-w-md w-full rounded-2xl border border-rose-500/40 bg-paper-surface p-7 space-y-5 shadow-2xl">
+      {/* Override Confirmation Modal (Portaled directly to document.body to prevent layout scroll displacement) */}
+      {isOverrideModalOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-soft-in">
+          <div className="max-w-md w-full rounded-2xl border border-rose-500/40 bg-paper-surface p-7 space-y-5 shadow-2xl relative my-auto animate-fade-up">
             <div className="flex items-center gap-3 text-rose-500">
               <AlertTriangle className="h-6 w-6 shrink-0" />
               <h3 className="font-display text-xl font-bold text-ink">Are you sure?</h3>
@@ -221,7 +233,8 @@ export const FrictionDecision: React.FC = () => {
               </PillButton>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </HairlineCard>
   );

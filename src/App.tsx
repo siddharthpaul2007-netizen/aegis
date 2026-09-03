@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useIntelligence } from './context/IntelligenceContext';
 import { Header } from './components/layout/Header';
 import { ScenarioBar } from './components/layout/ScenarioBar';
@@ -31,6 +31,11 @@ import { AuditLedger } from './components/history/AuditLedger';
 
 export const AppContent: React.FC = () => {
   const { activeTab } = useIntelligence();
+
+  // Reset scroll position on tab change to prevent landing in blank space
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeTab]);
 
   return (
     <div className="relative min-h-screen bg-paper-bottom text-ink selection:bg-accent-cyan/20 selection:text-ink pb-16">

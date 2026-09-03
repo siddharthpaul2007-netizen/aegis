@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Transaction } from '../../types';
 import { PillButton } from '../common/PillButton';
 import { StatusBadge } from '../common/StatusBadge';
@@ -10,9 +11,21 @@ interface AuditDetailModalProps {
 }
 
 export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({ transaction, onClose }) => {
+  useEffect(() => {
+    if (transaction) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [transaction]);
+
   if (!transaction) return null;
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-soft-in">
       <div className="max-w-2xl w-full rounded-2xl border border-hairlineStrong bg-paper-surface p-6 space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]">
         {/* Header */}
@@ -154,6 +167,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({ transaction,
           </PillButton>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
