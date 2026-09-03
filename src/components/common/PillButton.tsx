@@ -3,6 +3,7 @@ import React from 'react';
 interface PillButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
@@ -13,6 +14,7 @@ interface PillButtonProps {
 export const PillButton: React.FC<PillButtonProps> = ({
   children,
   onClick,
+  type = 'button',
   variant = 'primary',
   size = 'md',
   disabled = false,
@@ -35,6 +37,7 @@ export const PillButton: React.FC<PillButtonProps> = ({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={`

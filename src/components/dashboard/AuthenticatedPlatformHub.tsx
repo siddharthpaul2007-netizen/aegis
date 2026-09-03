@@ -2,23 +2,12 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useIntelligence } from '../../context/IntelligenceContext';
 import {
-  Shield,
-  TrendingUp,
-  Cpu,
-  ArrowRight,
   Sparkles,
-  Lock,
-  Zap,
-  Activity,
-  AlertTriangle,
   CheckCircle2,
-  ChevronRight,
-  ShieldCheck,
-  Building,
-  RefreshCw
 } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
 import { SovereignCommandNexus } from './SovereignCommandNexus';
+import { InteractiveSectorCard } from './InteractiveSectorCard';
 
 export const AuthenticatedPlatformHub: React.FC = () => {
   const { user } = useAuth();
@@ -72,12 +61,12 @@ export const AuthenticatedPlatformHub: React.FC = () => {
         </div>
       </div>
 
-      {/* ── NEW: SOVEREIGN DEFENSE NEXUS (Distinct Emerald / Gold Interactive Canvas) ── */}
+      {/* ── SOVEREIGN DEFENSE NEXUS (Distinct Emerald / Gold Interactive Canvas) ── */}
       <SovereignCommandNexus />
 
       {/* ── THE THREE MAJOR AEGIS PLATFORM SECTORS ── */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent-cyan shadow-[0_0_6px_#00d2ff]" />
@@ -90,183 +79,63 @@ export const AuthenticatedPlatformHub: React.FC = () => {
             </h2>
           </div>
           <span className="font-mono text-[10px] text-ink-dim hidden sm:block">
-            SELECT A CAPABILITY MODULE TO ENTER
+            SELECT A CAPABILITY ENGINE TO LAUNCH
           </span>
         </div>
 
-        {/* 3 Major Product Modules Grid */}
+        {/* 3 Major Interactive Product Modules Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* ════ SECTOR 01: PROTECT — Fraud Intelligence ════ */}
-          <div
-            onClick={() => setActiveTab('fraud')}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-500/25 bg-paper-surface/90 dark:bg-[#080b12]/90 p-6 sm:p-7 backdrop-blur-2xl shadow-xl hover:border-rose-500/60 hover:shadow-[0_0_30px_rgba(225,29,72,0.15)] cursor-pointer transition-all duration-300"
-          >
-            {/* Top Tag & Sector Badge */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] font-extrabold tracking-widest text-rose-500 uppercase px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30">
-                    SECTOR 01 · PROTECT
-                  </span>
-                </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-500 group-hover:scale-110 transition-transform">
-                  <Shield className="h-5 w-5" />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-display text-xl font-bold text-ink group-hover:text-rose-400 transition-colors">
-                  Fraud Intelligence
-                </h3>
-                <p className="font-sans text-xs sm:text-sm text-ink-dim leading-relaxed mt-2 font-light">
-                  Detect and understand suspicious financial situations before vulnerable users lose money. Scans real-time beneficiary mismatches, mule accounts, and coercive syndicate playbooks.
-                </p>
-              </div>
-
-              {/* Live Feature Highlights List */}
-              <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-3.5 space-y-2 font-mono text-[11px]">
-                <div className="flex items-center justify-between text-rose-400 font-bold">
-                  <span>CAPABILITIES</span>
-                  <span className="text-[10px]">LIVE</span>
-                </div>
-                <ul className="space-y-1 text-ink-dim text-[10px]">
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-rose-500" />
-                    <span>Transaction Intercept Simulation</span>
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-rose-500" />
-                    <span>Confirmation of Payee Registry</span>
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-rose-500" />
-                    <span>Digital Arrest & Phishing Deconstruction</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="mt-6 pt-4 border-t border-hairline flex items-center justify-between font-mono text-xs font-bold text-ink group-hover:text-rose-400 transition-colors">
-              <span>ENTER FRAUD INTELLIGENCE</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </div>
-          </div>
+          <InteractiveSectorCard
+            sectorId="fraud"
+            indexNumber="01"
+            badgeLabel="SECTOR 01 · PROTECT"
+            title="Fraud Intelligence"
+            description="Detect and understand suspicious financial situations before vulnerable users lose money. Scans real-time beneficiary mismatches, mule accounts, and coercive syndicate playbooks."
+            capabilities={[
+              'Transaction Intercept Simulation',
+              'Confirmation of Payee Registry',
+              'Digital Arrest & Phishing Deconstruction'
+            ]}
+            ctaText="ENTER FRAUD INTELLIGENCE"
+            onEnter={() => setActiveTab('fraud')}
+            colorTheme="rose"
+          />
 
           {/* ════ SECTOR 02: STABILIZE — Financial Health ════ */}
-          <div
-            onClick={() => setActiveTab('health')}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-500/25 bg-paper-surface/90 dark:bg-[#080b12]/90 p-6 sm:p-7 backdrop-blur-2xl shadow-xl hover:border-emerald-500/60 hover:shadow-[0_0_30px_rgba(5,150,105,0.15)] cursor-pointer transition-all duration-300"
-          >
-            {/* Top Tag & Sector Badge */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] font-extrabold tracking-widest text-emerald-500 uppercase px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                    SECTOR 02 · STABILIZE
-                  </span>
-                </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-display text-xl font-bold text-ink group-hover:text-emerald-400 transition-colors">
-                  Financial Health
-                </h3>
-                <p className="font-sans text-xs sm:text-sm text-ink-dim leading-relaxed mt-2 font-light">
-                  Identify early financial stress signals and help users understand their financial resilience before problems become crises. Balances essential burn vs discretionary outflows.
-                </p>
-              </div>
-
-              {/* Live Feature Highlights List */}
-              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 space-y-2 font-mono text-[11px]">
-                <div className="flex items-center justify-between text-emerald-400 font-bold">
-                  <span>CAPABILITIES</span>
-                  <span className="text-[10px]">PREDICTIVE</span>
-                </div>
-                <ul className="space-y-1 text-ink-dim text-[10px]">
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-emerald-500" />
-                    <span>Financial Resilience Score (0-100)</span>
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-emerald-500" />
-                    <span>Emergency Runway Velocity Modeling</span>
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-emerald-500" />
-                    <span>Autonomous Buffer Sweep Actions</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="mt-6 pt-4 border-t border-hairline flex items-center justify-between font-mono text-xs font-bold text-ink group-hover:text-emerald-400 transition-colors">
-              <span>EXPLORE FINANCIAL HEALTH</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </div>
-          </div>
+          <InteractiveSectorCard
+            sectorId="health"
+            indexNumber="02"
+            badgeLabel="SECTOR 02 · STABILIZE"
+            title="Financial Health"
+            description="Identify early financial stress signals and help users understand their financial resilience before problems become crises. Balances essential burn vs discretionary outflows."
+            capabilities={[
+              'Financial Resilience Score (0-100)',
+              'Emergency Runway Velocity Modeling',
+              'Autonomous Buffer Sweep Actions'
+            ]}
+            ctaText="EXPLORE FINANCIAL HEALTH"
+            onEnter={() => setActiveTab('health')}
+            colorTheme="emerald"
+          />
 
           {/* ════ SECTOR 03: GOVERN — AI Governance & Audit ════ */}
-          <div
-            onClick={() => setActiveTab('ai-center')}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-sky-500/25 bg-paper-surface/90 dark:bg-[#080b12]/90 p-6 sm:p-7 backdrop-blur-2xl shadow-xl hover:border-sky-500/60 hover:shadow-[0_0_30px_rgba(2,132,199,0.15)] cursor-pointer transition-all duration-300"
-          >
-            {/* Top Tag & Sector Badge */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] font-extrabold tracking-widest text-sky-400 uppercase px-2.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/30">
-                    SECTOR 03 · GOVERN
-                  </span>
-                </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-sky-500/30 bg-sky-500/10 text-sky-400 group-hover:scale-110 transition-transform">
-                  <Cpu className="h-5 w-5" />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-display text-xl font-bold text-ink group-hover:text-sky-300 transition-colors">
-                  AI Governance & Audit
-                </h3>
-                <p className="font-sans text-xs sm:text-sm text-ink-dim leading-relaxed mt-2 font-light">
-                  Provide explainability, decision history, transparency, and trust around AI-generated recommendations. Complete cryptographic ledger with zero private banking data leakage.
-                </p>
-              </div>
-
-              {/* Live Feature Highlights List */}
-              <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-3.5 space-y-2 font-mono text-[11px]">
-                <div className="flex items-center justify-between text-sky-300 font-bold">
-                  <span>CAPABILITIES</span>
-                  <span className="text-[10px]">ZERO-KNOWLEDGE</span>
-                </div>
-                <ul className="space-y-1 text-ink-dim text-[10px]">
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-sky-400" />
-                    <span>Explainable SHAP Reasoning Tokens</span>
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-sky-400" />
-                    <span>Immutable Cryptographic Audit Trail</span>
-                  </li>
-                  <li className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-sky-400" />
-                    <span>Local Edge Inference Safeguards</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="mt-6 pt-4 border-t border-hairline flex items-center justify-between font-mono text-xs font-bold text-ink group-hover:text-sky-400 transition-colors">
-              <span>OPEN GOVERNANCE CENTER</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </div>
-          </div>
+          <InteractiveSectorCard
+            sectorId="ai-center"
+            indexNumber="03"
+            badgeLabel="SECTOR 03 · GOVERN"
+            title="AI Governance & Audit"
+            description="Provide explainability, decision history, transparency, and trust around AI-generated recommendations. Complete cryptographic ledger with zero private banking data leakage."
+            capabilities={[
+              'Explainable SHAP Reasoning Tokens',
+              'Immutable Cryptographic Audit Trail',
+              'Local Edge Inference Safeguards'
+            ]}
+            ctaText="OPEN GOVERNANCE CENTER"
+            onEnter={() => setActiveTab('ai-center')}
+            colorTheme="sky"
+          />
 
         </div>
       </div>

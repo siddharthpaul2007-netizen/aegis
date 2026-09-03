@@ -3,9 +3,9 @@ import { useIntelligence } from '../../context/IntelligenceContext';
 import { HairlineCard } from '../common/HairlineCard';
 import { PillButton } from '../common/PillButton';
 import { StatusBadge } from '../common/StatusBadge';
-import { ShieldCheck, Play, RotateCcw, Info, Building2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Play, RotateCcw, Info, Building2, AlertTriangle, CheckCircle2, ListFilter, CreditCard } from 'lucide-react';
 import { Transaction } from '../../types';
-import { queryBankingDatabase } from '../../data/bankingDatabase';
+import { queryBankingDatabase, BANKING_DATABASE } from '../../data/bankingDatabase';
 
 const PAYMENT_LABELS: Record<string, string> = {
   UPI:  'UPI — Phone / QR Pay',
@@ -45,6 +45,14 @@ export const TransactionSimulator: React.FC = () => {
       paymentType,
       category
     });
+  };
+
+  const handleAccountSelect = (selectedVal: string) => {
+    setAccount(selectedVal);
+    const matchedRecord = queryBankingDatabase(selectedVal);
+    if (matchedRecord) {
+      setBeneficiary(matchedRecord.legalKycName);
+    }
   };
 
   const isAnalyzing = simulationState.isAnalyzing;
@@ -121,7 +129,7 @@ export const TransactionSimulator: React.FC = () => {
           </div>
         </div>
 
-        {/* Row 2 */}
+        {/* Row 2: Beneficiary Name & Bank Account ID Dropdown */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {/* Beneficiary Name */}
           <div className="space-y-1.5">
@@ -134,25 +142,50 @@ export const TransactionSimulator: React.FC = () => {
               onChange={(e) => setBeneficiary(e.target.value)}
               disabled={isAnalyzing}
               className="w-full rounded-xl border border-hairline bg-paper-elevated px-4 py-3 font-sans text-sm text-ink focus:border-accent-cyan focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 disabled:opacity-50"
-              placeholder="e.g. Arjun Sharma or Tata Power"
+              placeholder="e.g. Arjun Sharma or Govt Escrow"
               required
             />
           </div>
 
-          {/* Account */}
+          {/* Bank Account ID / UPI ID Dropdown List with Beneficiary Names */}
           <div className="space-y-1.5">
-            <label className="block font-sans text-sm font-semibold text-ink">
-              Their bank account or UPI ID
-            </label>
-            <input
-              type="text"
+            <div className="flex items-center justify-between">
+              <label className="block font-sans text-sm font-semibold text-ink">
+                Bank Account ID / UPI ID
+              </label>
+              <span className="font-mono text-[10px] text-accent-cyan font-bold flex items-center gap-1">
+                <CreditCard className="h-3 w-3" />
+                {BANKING_DATABASE.length} Accounts in Registry
+              </span>
+            </div>
+
+            {/* Dropdown containing Beneficiary Names alongside Account Numbers and UPI IDs */}
+            <select
               value={account}
-              onChange={(e) => setAccount(e.target.value)}
+              onChange={(e) => handleAccountSelect(e.target.value)}
               disabled={isAnalyzing}
-              className="w-full rounded-xl border border-hairline bg-paper-elevated px-4 py-3 font-mono text-sm text-ink focus:border-accent-cyan focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 disabled:opacity-50"
-              placeholder="e.g. HDFC0001249 · 501004928192"
-              required
-            />
+              className="w-full rounded-xl border border-hairline bg-paper-elevated px-3.5 py-3 font-mono text-xs sm:text-sm text-ink focus:border-accent-cyan focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 disabled:opacity-50 cursor-pointer"
+            >
+              <option value="" disabled>-- Select Beneficiary & Account from Database --</option>
+              
+              {/* Bank Account Numbers with Beneficiary Names */}
+              <optgroup label="── Bank Account Numbers (with Beneficiary Name) ──">
+                {BANKING_DATABASE.filter(r => !r.accountNumber.includes('@')).map((rec) => (
+                  <option key={rec.accountNumber} value={rec.displayAccount}>
+                    {rec.legalKycName} — {rec.displayAccount} ({rec.bankName})
+                  </option>
+                ))}
+              </optgroup>
+
+              {/* UPI Handles with Beneficiary Names */}
+              <optgroup label="── UPI IDs / Handles (with Beneficiary Name) ──">
+                {BANKING_DATABASE.filter(r => r.accountNumber.includes('@')).map((rec) => (
+                  <option key={rec.accountNumber} value={rec.displayAccount}>
+                    {rec.legalKycName} — {rec.displayAccount} ({rec.bankName})
+                  </option>
+                ))}
+              </optgroup>
+            </select>
           </div>
         </div>
 
@@ -166,7 +199,7 @@ export const TransactionSimulator: React.FC = () => {
                           (beneficiary.length > 3 && beneficiary.toLowerCase().trim().includes(liveRecord.legalKycName.toLowerCase().split(' ')[0]));
 
           return (
-            <div className={`rounded-xl border p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs transition-all ${
+            <div className={`rounded-xl border p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs transition-all ${
               isMule
                 ? 'border-rose-500/40 bg-rose-500/10 text-rose-500'
                 : isMatch
@@ -175,18 +208,24 @@ export const TransactionSimulator: React.FC = () => {
             }`}>
               <div className="flex items-start gap-2.5">
                 <Building2 className="h-4 w-4 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold">Core Banking Registry:</span>{' '}
-                  <span className="font-mono font-bold">{liveRecord.legalKycName}</span> ({liveRecord.bankName} · {liveRecord.accountType})
-                  {!isMatch && (
-                    <span className="block text-[11px] font-sans mt-0.5 opacity-90 text-rose-500">
-                      🚨 Identity Discrepancy: Entered name does not match the legal account holder on bank record!
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold">Inter-Bank Confirmation of Payee Registry:</span>
+                    <span className="font-mono font-bold px-2 py-0.5 rounded bg-black/20 text-ink">
+                      {liveRecord.legalKycName}
                     </span>
-                  )}
+                    <span className="font-mono text-[10px] text-ink-dim">
+                      ({liveRecord.bankName} · {liveRecord.accountType})
+                    </span>
+                  </div>
+                  <p className="font-mono text-[11px] opacity-80">
+                    {liveRecord.notes}
+                  </p>
                 </div>
               </div>
-              <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-current shrink-0">
-                {isMule ? 'MULE WATCHLIST' : isMatch ? 'KYC VERIFIED' : 'NAME MISMATCH'}
+
+              <span className="font-mono text-[10px] uppercase font-bold shrink-0 self-start sm:self-center px-2 py-1 rounded border border-current/20">
+                {isMule ? '🚨 KNOWN MULE' : isMatch ? '✓ KYC MATCH' : '⚠️ NAME MISMATCH'}
               </span>
             </div>
           );
@@ -195,7 +234,7 @@ export const TransactionSimulator: React.FC = () => {
         {/* Stated Purpose */}
         <div className="space-y-1.5">
           <label className="block font-sans text-sm font-semibold text-ink">
-            Why are you sending this money?
+            What is this transfer for?
           </label>
           <input
             type="text"
@@ -203,27 +242,21 @@ export const TransactionSimulator: React.FC = () => {
             onChange={(e) => setPurpose(e.target.value)}
             disabled={isAnalyzing}
             className="w-full rounded-xl border border-hairline bg-paper-elevated px-4 py-3 font-sans text-sm text-ink focus:border-accent-cyan focus:outline-none focus:ring-2 focus:ring-accent-cyan/30 disabled:opacity-50"
-            placeholder="Describe it in your own words, e.g. paying my freelancer for logo design"
-            required
+            placeholder="e.g. Design deliverables invoice or Clearance fee"
           />
-          <p className="flex items-center gap-1.5 font-sans text-xs text-ink-dim">
-            <Info className="h-3.5 w-3.5 shrink-0" />
-            Your reason helps us spot pressure tactics. We analyse it privately — no data leaves your device.
-          </p>
         </div>
 
         {/* Submit */}
-        <div className="flex items-center justify-between gap-4 pt-1">
-          <p className="font-sans text-xs text-ink-dim">
-            This is a simulated safety check — not a real banking database.
-          </p>
+        <div className="pt-2">
           <PillButton
             variant="primary"
-            size="md"
+            size="lg"
+            type="submit"
             disabled={isAnalyzing}
-            icon={<Play className="h-3.5 w-3.5 fill-current" />}
+            icon={<Play className="h-4 w-4 fill-current" />}
+            className="w-full sm:w-auto"
           >
-            {isAnalyzing ? 'Checking now…' : 'Run Safety Check'}
+            {isAnalyzing ? 'Analyzing Security Signals…' : 'Run Safety Check'}
           </PillButton>
         </div>
       </form>
