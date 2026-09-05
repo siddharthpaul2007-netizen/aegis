@@ -2,7 +2,7 @@
 
 ### Autonomous Banking Intelligence Platform
 
-🌐 **Live Demo:** [Launch AEGIS // SENTINEL]-(https://aegis-zeta-blue.vercel.app/)
+🌐 **Live Demo:** [Launch AEGIS // SENTINEL](https://aegis.vercel.app)
 
 ---
 
