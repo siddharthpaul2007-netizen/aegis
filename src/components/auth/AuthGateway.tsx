@@ -69,12 +69,12 @@ export const AuthGateway: React.FC = () => {
       return;
     }
 
-    if (signUpPassword !== signUpConfirmPassword) {
+    if (signUpPassword.trim() !== signUpConfirmPassword.trim()) {
       setErrorMessage('Passwords do not match. Please verify your password entry.');
       return;
     }
 
-    if (signUpPassword.length < 6) {
+    if (signUpPassword.trim().length < 6) {
       setErrorMessage('Password must contain at least 6 characters.');
       return;
     }
@@ -83,9 +83,9 @@ export const AuthGateway: React.FC = () => {
     setIsLoading(true);
 
     const res = await signUp({
-      name: signUpName,
-      email: signUpEmail,
-      password: signUpPassword,
+      name: signUpName.trim(),
+      email: signUpEmail.trim(),
+      password: signUpPassword.trim(),
       role: signUpRole,
     });
 

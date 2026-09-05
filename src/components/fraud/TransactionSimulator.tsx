@@ -50,7 +50,7 @@ export const TransactionSimulator: React.FC = () => {
   const handleAccountSelect = (selectedVal: string) => {
     setAccount(selectedVal);
     const matchedRecord = queryBankingDatabase(selectedVal);
-    if (matchedRecord) {
+    if (matchedRecord && !beneficiary) {
       setBeneficiary(matchedRecord.legalKycName);
     }
   };
